@@ -406,7 +406,7 @@ GND GND
 
 /* dut goes here */
 mk%(Dut)sWrapper %(Dut)sIMPLEMENTATION (
-      %(dut_hdmi_clock_arg)s
+      %(dut_clock_arg)s
       .CLK(processing_system7_1_fclk_clk0),
       .RST_N(processing_system7_1_fclk_reset0_n),
       %(dut_axi_master_port_map)s
@@ -886,19 +886,20 @@ class Hdmi:
     output hdmi_hsync,
     output hdmi_de,
     output [15:0] hdmi_data,
-    inout i2c1_scl,
-    inout i2c1_sda,
+    /* inout i2c1_scl,
+    inout i2c1_sda, */
 '''
     def top_bus_wires(self, busname,t,params):
         return ''
     def ps7_bus_port_map(self,busname,t,params):
         return '''
+     /*
        .I2C1_SCL_I(i2c1_scl_i),
        .I2C1_SCL_O(i2c1_scl_o),
        .I2C1_SCL_T(i2c1_scl_t),
        .I2C1_SDA_I(i2c1_sda_i),
        .I2C1_SDA_O(i2c1_sda_o),
-       .I2C1_SDA_T(i2c1_sda_t),
+       .I2C1_SDA_T(i2c1_sda_t), */
 '''
     def dut_bus_port_map(self, busname,t,params):
         return '''
@@ -911,6 +912,7 @@ class Hdmi:
         return '''
     assign hdmi_clk = processing_system7_1_fclk_clk1;
 
+/*
     IOBUF # (
     .DRIVE(12),
     .IOSTANDARD("LVCMOS25"),
@@ -935,6 +937,7 @@ class Hdmi:
     .T(i2c1_sda_t)
     // Buffer input
     );
+*/
 '''
     def bus_assignments(self,busname,t,params):
         return ''
@@ -1475,6 +1478,13 @@ class InterfaceMixin:
             default_leds_assignment = ''
         else:
             default_leds_assignment = '''assign GPIO_leds = 8'haa;'''
+        clklist = []
+        if len(buses['HDMI']):
+            clklist.append('hdmi_clk')
+        if len(buses['ImageonVita']):
+            clklist.append('imageon_clk')
+            clklist.append('imageon_clk4x')
+
         substs = {
             'dut': dutName.lower(),
             'Dut': util.capitalize(self.name),
@@ -1487,7 +1497,7 @@ class InterfaceMixin:
             'top_dut_axi_master_port_map': ''.join([top_dut_axi_master_port_map_template % subst for subst in masterBusSubsts]),
             'top_ps7_axi_master_port_map': ''.join([top_ps7_axi_master_port_map_template % subst for subst in masterBusSubsts]),
             'top_ps7_axi_slave_port_map': ''.join([top_ps7_axi_slave_port_map_template % subst for subst in slaveBusSubsts]),
-            'dut_hdmi_clock_arg': '      .CLK_hdmi_clk(hdmi_clk),' if len(buses['HDMI']) else '',
+            'dut_clock_arg': '\n'.join(['      .CLK_%s(%s),' % (clk,clk) for clk in clklist]),
             'top_bus_ports':
                 ''.join([''.join([busHandlers[busType].top_bus_ports(busname,t,params) for (busname,t,params) in buses[busType]])
                          for busType in busHandlers]),

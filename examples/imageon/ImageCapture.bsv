@@ -24,6 +24,7 @@
 import FIFO::*;
 import SPI::*;
 import GetPut::*;
+import Clocks::*;
 
 import Zynq::*;
 import Imageon::*;
@@ -125,22 +126,28 @@ interface ImageCapture;
     method Action set_syncgen_vbporch(Bit#(16) v);
 
     interface ImageonVita imageon;
-//    interface HDMI hdmi;
+    interface HDMI hdmi;
 endinterface
 
-module mkImageCapture#(//Clock hdmi_clock, 
-       ImageCaptureIndications indications)(ImageCapture) provisos (Bits#(XsviData,xsviDataWidth));
-    ImageonVitaController imageonVita <- mkImageonVitaController();
+module mkImageCapture#(Clock hdmi_clock,
+		       Clock imageon_clock,
+		       Clock imageon_clock4x,
+		       ImageCaptureIndications indications)(ImageCapture) provisos (Bits#(XsviData,xsviDataWidth));
+
+    Reset reset <- exposeCurrentReset;
+    Reset imageon_reset <- mkAsyncReset(2, reset, imageon_clock);
+
+    ImageonVitaController imageonVita <- mkImageonVitaController(imageon_clock, imageon_reset);
     ImageonControl control = imageonVita.control;
     //jcaBlueScope#(64,64) spiBlueScope <- mkBlueScope(1024);
-   AxiDMA dma <- mkAxiDMA;
-   WriteChan dma_debug_write_chan = dma.write.writeChannels[1];
-   BlueScope#(64,64) spiBlueScope <- mkBlueScope(32, dma_debug_write_chan);
+    AxiDMA dma <- mkAxiDMA;
+    WriteChan dma_debug_write_chan = dma.write.writeChannels[1];
+    BlueScope#(64,64) spiBlueScope <- mkBlueScope(32, dma_debug_write_chan);
 //module mkSyncBlueScope#(Integer samples, WriteChan wchan, Clock sClk, Reset sRst, Clock dClk, Reset dRst)(BlueScope#(dataWidth, triggerWidth))
 
-    //BlueScope#(xsviDataWidth,xsviDataWidth) xsviBlueScope <- mkBlueScope(1024);
-    SensorToVideo converter <- mkSensorToVideo;
-    HdmiOut hdmiOut <- mkHdmiOut;
+    //BlueScope#(xsviDataWidth,xsviDataWidth) xsviBlueScope <- mkBlueScope(1024, clocked_by imageon_clock, reset_by imageon_reset);
+    SensorToVideo converter <- mkSensorToVideo(clocked_by imageon_clock, reset_by imageon_reset);
+    HdmiOut hdmiOut <- mkHdmiOut(clocked_by imageon_clock, reset_by imageon_reset);
 
     rule rxfifo_response;
         let v <- control.rxfifo_response.get();
@@ -399,4 +406,5 @@ module mkImageCapture#(//Clock hdmi_clock,
     endmethod
 
     interface ImageonVita imageon = imageonVita.host;
+    interface HDMI hdmi = hdmiOut.hdmi;
 endmodule

@@ -519,6 +519,9 @@ class InterfaceMixin:
             if collected:
                 if busType == 'HDMI':
                     clknames.append('hdmi_clk')
+                if busType == 'ImageonVita':
+                    clknames.append('imageon_clk')
+                    clknames.append('imageon_clk4x')
             buses[busType] = collected
         print 'clknames', clknames
 

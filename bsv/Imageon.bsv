@@ -250,7 +250,7 @@ interface ImageonVitaController;
     interface ImageonControl control;
 endinterface
 
-module mkImageonVitaController(ImageonVitaController);
+module mkImageonVitaController#(Clock imageon_clk, Reset imageon_reset)(ImageonVitaController);
 
     Reg#(Bit#(1)) host_vita_reset_reg <- mkReg(0);
     Reg#(Bit#(1)) host_oe_reg <- mkReg(0);
@@ -338,17 +338,17 @@ module mkImageonVitaController(ImageonVitaController);
     Reg#(Bit#(16)) syncgen_vfporch_reg <- mkReg(0);
     Reg#(Bit#(16)) syncgen_vsync_reg <- mkReg(0);
     Reg#(Bit#(16)) syncgen_vbporch_reg <- mkReg(0);
-    Reg#(Bit#(32)) vsync_reg <- mkReg(0);
-    Reg#(Bit#(32)) hsync_reg <- mkReg(0);
-    Reg#(Bit#(32)) vblank_reg <- mkReg(0);
-    Reg#(Bit#(32)) hblank_reg <- mkReg(0);
-    Reg#(Bit#(32)) active_reg <- mkReg(0);
-    Wire#(Bit#(10)) xsvi_video_data_wire <- mkDWire(0);
-    Wire#(Bit#(1))  xsvi_vsync_wire <- mkDWire(0);
-    Wire#(Bit#(1))  xsvi_hsync_wire <- mkDWire(0);
-    Wire#(Bit#(1))  xsvi_vblank_wire <- mkDWire(0);
-    Wire#(Bit#(1))  xsvi_hblank_wire <- mkDWire(0);
-    Wire#(Bit#(1))  xsvi_active_video_wire <- mkDWire(0);
+    Reg#(Bit#(32)) vsync_reg <- mkReg(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Reg#(Bit#(32)) hsync_reg <- mkReg(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Reg#(Bit#(32)) vblank_reg <- mkReg(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Reg#(Bit#(32)) hblank_reg <- mkReg(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Reg#(Bit#(32)) active_reg <- mkReg(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Wire#(Bit#(10)) xsvi_video_data_wire <- mkDWire(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Wire#(Bit#(1))  xsvi_vsync_wire <- mkDWire(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Wire#(Bit#(1))  xsvi_hsync_wire <- mkDWire(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Wire#(Bit#(1))  xsvi_vblank_wire <- mkDWire(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Wire#(Bit#(1))  xsvi_hblank_wire <- mkDWire(0, clocked_by imageon_clk, reset_by imageon_reset);
+    Wire#(Bit#(1))  xsvi_active_video_wire <- mkDWire(0, clocked_by imageon_clk, reset_by imageon_reset);
     Wire#(Bit#(96)) debug_spi_wire <- mkDWire(0);
 
     interface ImageonVita host;
