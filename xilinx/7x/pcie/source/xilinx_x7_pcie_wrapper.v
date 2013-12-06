@@ -1354,100 +1354,136 @@ module xilinx_x7_pcie_wrapper #(
     end // if (~cfg_msg_received)
   end
 
-pcie_7x_0_axi_basic_top #(
-  .C_DATA_WIDTH     (C_DATA_WIDTH),       // RX/TX interface data width
-  .C_FAMILY         ("X7"),               // Targeted FPGA family
-  .C_ROOT_PORT      ("FALSE"),            // PCIe block is in root port mode
-  .C_PM_PRIORITY    ("FALSE")             // Disable TX packet boundary thrtl
+//begin pcie_7x_0_axi_basic_top {
+// axi_basic_top
+   wire user_turnoff_ok      = cfg_turnoff_ok;               //  input
+   wire  user_tcfg_gnt            =tx_cfg_gnt;               //  input
+   wire [5:0] trn_tbuf_av = tx_buf_av;
+   wire  trn_tcfg_req             = tx_cfg_req ;             //  input
+   wire  axi_top_trn_lnk_up               = user_lnk_up;     //  input
+   wire  axi_top_cfg_pm_send_pme_to       =1'b0;             //  input  NOT USED FOR EP
+   wire  [31:0] axi_top_trn_rdllp_data    =32'b0;            //  input - Not used in 7-series
+   wire  axi_top_trn_rdllp_src_rdy        =1'b0;             //  input -- Not used in 7-series
+   wire axi_top_cfg_turnoff_ok;
+   assign cfg_turnoff_ok_w = axi_top_cfg_turnoff_ok;         //  output
+   wire [2:0] np_counter;                                    //  output
 
-  ) axi_basic_top (
-    //---------------------------------------------//
-    // User Design I/O                             //
-    //---------------------------------------------//
+//---------------------------------------------//
+// RX Data Pipeline                            //
+//---------------------------------------------//
 
-    // AXI TX
-    //-----------
-    .s_axis_tx_tdata          (s_axis_tx_tdata),          //  input
-    .s_axis_tx_tvalid         (s_axis_tx_tvalid),         //  input
-    .s_axis_tx_tready         (s_axis_tx_tready),         //  output
-    .s_axis_tx_tkeep          (s_axis_tx_tkeep),          //  input
-    .s_axis_tx_tlast          (s_axis_tx_tlast),          //  input
-    .s_axis_tx_tuser          (s_axis_tx_tuser),          //  input
+pcie_7x_0_axi_basic_rx #(
+  .C_DATA_WIDTH( C_DATA_WIDTH ),
+  .C_FAMILY( C_FAMILY ),
 
-    // AXI RX
-    //-----------
-    .m_axis_rx_tdata          (m_axis_rx_tdata),          //  output
-    .m_axis_rx_tvalid         (m_axis_rx_tvalid),         //  output
-    .m_axis_rx_tready         (m_axis_rx_tready),         //  input
-    .m_axis_rx_tkeep          (m_axis_rx_tkeep),          //  output
-    .m_axis_rx_tlast          (m_axis_rx_tlast),          //  output
-    .m_axis_rx_tuser          (m_axis_rx_tuser),          //  output
+  .TCQ( TCQ ),
+  .REM_WIDTH( REM_WIDTH ),
+  .KEEP_WIDTH( KEEP_WIDTH )
+) rx_inst (
 
-    // User Misc.
-    //-----------
-    .user_turnoff_ok          (cfg_turnoff_ok),           //  input
-    .user_tcfg_gnt            (tx_cfg_gnt),               //  input
+  // Outgoing AXI TX
+  //-----------
+  .m_axis_rx_tdata( m_axis_rx_tdata ),
+  .m_axis_rx_tvalid( m_axis_rx_tvalid ),
+  .m_axis_rx_tready( m_axis_rx_tready ),
+  .m_axis_rx_tkeep( m_axis_rx_tkeep ),
+  .m_axis_rx_tlast( m_axis_rx_tlast ),
+  .m_axis_rx_tuser( m_axis_rx_tuser ),
 
-    //---------------------------------------------//
-    // PCIe Block I/O                              //
-    //---------------------------------------------//
+  // Incoming TRN RX
+  //-----------
+  .trn_rd( trn_rd ),
+  .trn_rsof( trn_rsof ),
+  .trn_reof( trn_reof ),
+  .trn_rsrc_rdy( trn_rsrc_rdy ),
+  .trn_rdst_rdy( trn_rdst_rdy ),
+  .trn_rsrc_dsc( trn_rsrc_dsc ),
+  .trn_rrem( trn_rrem ),
+  .trn_rerrfwd( trn_rerrfwd ),
+  .trn_rbar_hit( trn_rbar_hit[6:0] ),
+  .trn_recrc_err( trn_recrc_err ),
 
-    // TRN TX
-    //-----------
-    .trn_td                   (trn_td),                   //  output
-    .trn_tsof                 (trn_tsof),                 //  output
-    .trn_teof                 (trn_teof),                 //  output
-    .trn_tsrc_rdy             (trn_tsrc_rdy),             //  output
-    .trn_tdst_rdy             (trn_tdst_rdy),             //  input
-    .trn_tsrc_dsc             (trn_tsrc_dsc),             //  output
-    .trn_trem                 (trn_trem),                 //  output
-    .trn_terrfwd              (trn_terrfwd),              //  output
-    .trn_tstr                 (trn_tstr),                 //  output
-    .trn_tbuf_av              (tx_buf_av),                //  input
-    .trn_tecrc_gen            (trn_tecrc_gen),            //  output
+  // System
+  //-----------
+  .np_counter( np_counter ),
+  .user_clk( user_clk_out ),
+  .user_rst( user_reset )
+);
 
-    // TRN RX
-    //-----------
-    .trn_rd                   (trn_rd),                   //  input
-    .trn_rsof                 (trn_rsof),                 //  input
-    .trn_reof                 (trn_reof),                 //  input
-    .trn_rsrc_rdy             (trn_rsrc_rdy),             //  input
-    .trn_rdst_rdy             (trn_rdst_rdy),             //  output
-    .trn_rsrc_dsc             (trn_rsrc_dsc),             //  input
-    .trn_rrem                 (trn_rrem),                 //  input
-    .trn_rerrfwd              (trn_rerrfwd),              //  input
-    .trn_rbar_hit             (trn_rbar_hit[6:0]),             //  input
-    .trn_recrc_err            (trn_recrc_err),            //  input
 
-    // TRN Misc.
-    //-----------
-    .trn_tcfg_req             ( tx_cfg_req ),             //  input
-    .trn_tcfg_gnt             ( trn_tcfg_gnt),            //  output
-    .trn_lnk_up               ( user_lnk_up),             //  input
 
-    // Fuji3/Virtex6 PM
-    //-----------
-    .cfg_pcie_link_state      (cfg_pcie_link_state),      //  input
+//---------------------------------------------//
+// TX Data Pipeline                            //
+//---------------------------------------------//
 
-    // Virtex6 PM
-    //-----------
-    .cfg_pm_send_pme_to       (1'b0),                     //  input  NOT USED FOR EP
-    .cfg_pmcsr_powerstate     (cfg_pmcsr_powerstate),     //  input
-    .trn_rdllp_data           (32'b0),                    //  input - Not used in 7-series
-    .trn_rdllp_src_rdy        (1'b0),                     //  input -- Not used in 7-series
+pcie_7x_0_axi_basic_tx #(
+  .C_DATA_WIDTH( C_DATA_WIDTH ),
+  .C_FAMILY( C_FAMILY ),
+  .C_ROOT_PORT( C_ROOT_PORT ),
+  .C_PM_PRIORITY( C_PM_PRIORITY ),
 
-    // Power Mgmt for S6/V6
-    //-----------
-    .cfg_to_turnoff           (cfg_to_turnoff),           //  input
-    .cfg_turnoff_ok           (cfg_turnoff_ok_w),         //  output
+  .TCQ( TCQ ),
+  .REM_WIDTH( REM_WIDTH ),
+  .KEEP_WIDTH( KEEP_WIDTH )
+) tx_inst (
 
-    // System
-    //-----------
-    .user_clk                 (user_clk_out),             //  input
-    .user_rst                 (user_reset),               //  input
-    .np_counter               ()                          //  output
+  // Incoming AXI RX
+  //-----------
+  .s_axis_tx_tdata( s_axis_tx_tdata ),
+  .s_axis_tx_tvalid( s_axis_tx_tvalid ),
+  .s_axis_tx_tready( s_axis_tx_tready ),
+  .s_axis_tx_tkeep( s_axis_tx_tkeep ),
+  .s_axis_tx_tlast( s_axis_tx_tlast ),
+  .s_axis_tx_tuser( s_axis_tx_tuser ),
 
-  );
+  // User Misc.
+  //-----------
+  .user_turnoff_ok( user_turnoff_ok ),
+  .user_tcfg_gnt( user_tcfg_gnt ),
+
+  // Outgoing TRN TX
+  //-----------
+  .trn_td( trn_td ),
+  .trn_tsof( trn_tsof ),
+  .trn_teof( trn_teof ),
+  .trn_tsrc_rdy( trn_tsrc_rdy ),
+  .trn_tdst_rdy( trn_tdst_rdy ),
+  .trn_tsrc_dsc( trn_tsrc_dsc ),
+  .trn_trem( trn_trem ),
+  .trn_terrfwd( trn_terrfwd ),
+  .trn_tstr( trn_tstr ),
+  .trn_tbuf_av( trn_tbuf_av ),
+  .trn_tecrc_gen( trn_tecrc_gen ),
+
+  // TRN Misc.
+  //-----------
+  .trn_tcfg_req( trn_tcfg_req ),
+  .trn_tcfg_gnt( trn_tcfg_gnt ),
+  .trn_lnk_up( axi_top_trn_lnk_up ),
+
+  // 7 Series/Virtex6 PM
+  //-----------
+  .cfg_pcie_link_state( cfg_pcie_link_state ),
+
+  // Virtex6 PM
+  //-----------
+  .cfg_pm_send_pme_to( axi_top_cfg_pm_send_pme_to ),
+  .cfg_pmcsr_powerstate( cfg_pmcsr_powerstate ),
+  .trn_rdllp_data( axi_top_trn_rdllp_data ),
+  .trn_rdllp_src_rdy( axi_top_trn_rdllp_src_rdy ),
+
+  // Spartan6 PM
+  //-----------
+  .cfg_to_turnoff( cfg_to_turnoff ),
+  .cfg_turnoff_ok( axi_top_cfg_turnoff_ok ),
+
+  // System
+  //-----------
+  .user_clk( user_clk_out ),
+  .user_rst( user_reset )
+);
+
+//end pcie_7x_0_axi_basic_top }
 
 
  //-------------------------------------------------------
