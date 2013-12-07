@@ -1372,14 +1372,29 @@ module xilinx_x7_pcie_wrapper #(
 // RX Data Pipeline                            //
 //---------------------------------------------//
 
-pcie_7x_0_axi_basic_rx #(
+//begin pcie_7x_0_axi_basic_rx {
+// rx_inst
+
+// Wires
+wire                  null_rx_tvalid;
+wire                  null_rx_tlast;
+wire [KEEP_WIDTH-1:0] null_rx_tkeep;
+wire                  null_rdst_rdy;
+wire            [4:0] null_is_eof;
+
+//---------------------------------------------//
+// RX Data Pipeline                            //
+//---------------------------------------------//
+
+pcie_7x_0_axi_basic_rx_pipeline #(
   .C_DATA_WIDTH( C_DATA_WIDTH ),
   .C_FAMILY( C_FAMILY ),
-
   .TCQ( TCQ ),
+
   .REM_WIDTH( REM_WIDTH ),
   .KEEP_WIDTH( KEEP_WIDTH )
-) rx_inst (
+
+) rx_pipeline_inst (
 
   // Outgoing AXI TX
   //-----------
@@ -1403,12 +1418,58 @@ pcie_7x_0_axi_basic_rx #(
   .trn_rbar_hit( trn_rbar_hit[6:0] ),
   .trn_recrc_err( trn_recrc_err ),
 
+  // Null Inputs
+  //-----------
+  .null_rx_tvalid( null_rx_tvalid ),
+  .null_rx_tlast( null_rx_tlast ),
+  .null_rx_tkeep( null_rx_tkeep ),
+  .null_rdst_rdy( null_rdst_rdy ),
+  .null_is_eof( null_is_eof ),
+
   // System
   //-----------
   .np_counter( np_counter ),
   .user_clk( user_clk_out ),
   .user_rst( user_reset )
 );
+
+
+ //---------------------------------------------//
+ // RX Null Packet Generator                    //
+ //---------------------------------------------//
+
+pcie_7x_0_axi_basic_rx_null_gen #(
+  .C_DATA_WIDTH( C_DATA_WIDTH ),
+  .TCQ( TCQ ),
+
+  .KEEP_WIDTH( KEEP_WIDTH )
+
+ ) rx_null_gen_inst (
+
+  // Inputs
+  //-----------
+  .m_axis_rx_tdata( m_axis_rx_tdata ),
+  .m_axis_rx_tvalid( m_axis_rx_tvalid ),
+  .m_axis_rx_tready( m_axis_rx_tready ),
+  .m_axis_rx_tlast( m_axis_rx_tlast ),
+  .m_axis_rx_tuser( m_axis_rx_tuser ),
+
+  // Null Outputs
+  //-----------
+  .null_rx_tvalid( null_rx_tvalid ),
+  .null_rx_tlast( null_rx_tlast ),
+  .null_rx_tkeep( null_rx_tkeep ),
+  .null_rdst_rdy( null_rdst_rdy ),
+  .null_is_eof( null_is_eof ),
+
+  // System
+  //-----------
+  .user_clk( user_clk_out ),
+  .user_rst( user_reset )
+ );
+
+//end pcie_7x_0_axi_basic_rx }
+
 
 
 
