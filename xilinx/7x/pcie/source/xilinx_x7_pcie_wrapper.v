@@ -2190,30 +2190,32 @@ assign null_rdst_rdy  = null_rx_tlast;
 // TX Data Pipeline                            //
 //---------------------------------------------//
 
-pcie_7x_0_axi_basic_tx #(
-  .C_DATA_WIDTH( C_DATA_WIDTH ),
-  .C_FAMILY( C_FAMILY ),
-  .C_ROOT_PORT( C_ROOT_PORT ),
-  .C_PM_PRIORITY( C_PM_PRIORITY ),
+//begin pcie_7x_0_axi_basic_tx {
+// tx_inst 
 
+wire tready_thrtl;
+
+//---------------------------------------------//
+// TX Data Pipeline                            //
+//---------------------------------------------//
+
+pcie_7x_0_axi_basic_tx_pipeline #(
+  .C_DATA_WIDTH( C_DATA_WIDTH ),
+  .C_PM_PRIORITY( C_PM_PRIORITY ),
   .TCQ( TCQ ),
+
   .REM_WIDTH( REM_WIDTH ),
   .KEEP_WIDTH( KEEP_WIDTH )
-) tx_inst (
+) tx_pipeline_inst (
 
   // Incoming AXI RX
   //-----------
   .s_axis_tx_tdata( s_axis_tx_tdata ),
-  .s_axis_tx_tvalid( s_axis_tx_tvalid ),
   .s_axis_tx_tready( s_axis_tx_tready ),
+  .s_axis_tx_tvalid( s_axis_tx_tvalid ),
   .s_axis_tx_tkeep( s_axis_tx_tkeep ),
   .s_axis_tx_tlast( s_axis_tx_tlast ),
   .s_axis_tx_tuser( s_axis_tx_tuser ),
-
-  // User Misc.
-  //-----------
-  .user_turnoff_ok( user_turnoff_ok ),
-  .user_tcfg_gnt( user_tcfg_gnt ),
 
   // Outgoing TRN TX
   //-----------
@@ -2226,36 +2228,87 @@ pcie_7x_0_axi_basic_tx #(
   .trn_trem( trn_trem ),
   .trn_terrfwd( trn_terrfwd ),
   .trn_tstr( trn_tstr ),
-  .trn_tbuf_av( trn_tbuf_av ),
   .trn_tecrc_gen( trn_tecrc_gen ),
-
-  // TRN Misc.
-  //-----------
-  .trn_tcfg_req( trn_tcfg_req ),
-  .trn_tcfg_gnt( trn_tcfg_gnt ),
   .trn_lnk_up( axi_top_trn_lnk_up ),
-
-  // 7 Series/Virtex6 PM
-  //-----------
-  .cfg_pcie_link_state( cfg_pcie_link_state ),
-
-  // Virtex6 PM
-  //-----------
-  .cfg_pm_send_pme_to( axi_top_cfg_pm_send_pme_to ),
-  .cfg_pmcsr_powerstate( cfg_pmcsr_powerstate ),
-  .trn_rdllp_data( axi_top_trn_rdllp_data ),
-  .trn_rdllp_src_rdy( axi_top_trn_rdllp_src_rdy ),
-
-  // Spartan6 PM
-  //-----------
-  .cfg_to_turnoff( cfg_to_turnoff ),
-  .cfg_turnoff_ok( axi_top_cfg_turnoff_ok ),
 
   // System
   //-----------
+  .tready_thrtl( tready_thrtl ),
   .user_clk( user_clk_out ),
   .user_rst( user_reset )
 );
+
+
+//---------------------------------------------//
+// TX Throttle Controller                      //
+//---------------------------------------------//
+
+generate
+  if(C_PM_PRIORITY == "FALSE") begin : thrtl_ctl_enabled
+pcie_7x_0_axi_basic_tx_thrtl_ctl #(
+      .C_DATA_WIDTH( C_DATA_WIDTH ),
+      .C_FAMILY( C_FAMILY ),
+      .C_ROOT_PORT( C_ROOT_PORT ),
+      .TCQ( TCQ )
+
+    ) tx_thrl_ctl_inst (
+
+      // Outgoing AXI TX
+      //-----------
+      .s_axis_tx_tdata( s_axis_tx_tdata ),
+      .s_axis_tx_tvalid( s_axis_tx_tvalid ),
+      .s_axis_tx_tuser( s_axis_tx_tuser ),
+      .s_axis_tx_tlast( s_axis_tx_tlast ),
+
+      // User Misc.
+      //-----------
+      .user_turnoff_ok( user_turnoff_ok ),
+      .user_tcfg_gnt( user_tcfg_gnt ),
+
+      // Incoming TRN RX
+      //-----------
+      .trn_tbuf_av( trn_tbuf_av ),
+      .trn_tdst_rdy( trn_tdst_rdy ),
+
+      // TRN Misc.
+      //-----------
+      .trn_tcfg_req( trn_tcfg_req ),
+      .trn_tcfg_gnt( trn_tcfg_gnt ),
+      .trn_lnk_up( axi_top_trn_lnk_up ),
+
+      // 7 Seriesq/Virtex6 PM
+      //-----------
+      .cfg_pcie_link_state( cfg_pcie_link_state ),
+
+      // Virtex6 PM
+      //-----------
+      .cfg_pm_send_pme_to( axi_top_cfg_pm_send_pme_to ),
+      .cfg_pmcsr_powerstate( cfg_pmcsr_powerstate ),
+      .trn_rdllp_data( axi_top_trn_rdllp_data ),
+      .trn_rdllp_src_rdy( axi_top_trn_rdllp_src_rdy ),
+
+      // Spartan6 PM
+      //-----------
+      .cfg_to_turnoff( cfg_to_turnoff ),
+      .cfg_turnoff_ok( axi_top_cfg_turnoff_ok ),
+
+      // System
+      //-----------
+      .tready_thrtl( tready_thrtl ),
+      .user_clk( user_clk_out ),
+      .user_rst( user_reset )
+    );
+  end
+  else begin : thrtl_ctl_disabled
+    assign tready_thrtl   = 1'b0;
+
+    assign axi_top_cfg_turnoff_ok = user_turnoff_ok;
+    assign trn_tcfg_gnt   = user_tcfg_gnt;
+  end
+endgenerate
+
+//end pcie_7x_0_axi_basic_tx }
+
 
 //end pcie_7x_0_axi_basic_top }
 
