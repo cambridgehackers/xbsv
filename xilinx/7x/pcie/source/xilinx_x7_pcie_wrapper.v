@@ -38,7 +38,7 @@ module xilinx_x7_pcie_wrapper #(
 				
 				parameter         C_FAMILY = "7X",
 				parameter         C_ROOT_PORT = "FALSE",
-				parameter         C_PM_PRIORITY = "FALSE",
+				parameter         C_PM_PRIORITY = "FALSE", // removed code for "TRUE"
 				parameter         IMPL_TARGET = "HARD",
 				parameter         TLM_TX_OVERHEAD = 24, // overhead bytes for packets (transmit)
 				
@@ -2240,39 +2240,11 @@ end
 // depends on C_PM_PRIORITY, as described below.                              //
 //----------------------------------------------------------------------------//
 generate
-  // In the C_PM_PRIORITY pipeline, we disable the TRN interfacefrom the time
-  // the link goes down until the the AXI interface is ready to accept packets
-  // again (via assertion of TREADY). By waiting for TREADY, we allow the
-  // previous value buffer to fill, so we're ready for any throttling by the
-  // user or the block.
-  if(C_PM_PRIORITY == "TRUE") begin : pm_priority_trn_flush
-    always @(posedge user_clk_out) begin
-      if(user_reset) begin
-        reg_disable_trn    <= #TCQ 1'b1;
-      end
-      else begin
-        // When the link goes down, disable the TRN interface.
-        if(!axi_top_trn_lnk_up)
-        begin
-          reg_disable_trn  <= #TCQ 1'b1;
-        end
-
-        // When the link comes back up and the AXI interface is ready, we can
-        // release the pipeline and return to normal operation.
-        else if(!flush_axi && s_axis_tx_tready) begin
-          reg_disable_trn <= #TCQ 1'b0;
-        end
-      end
-    end
-
-    assign disable_trn = reg_disable_trn;
-  end
-
   // In the throttle-controlled pipeline, we don't have a previous value buffer.
   // The throttle control mechanism handles TREADY, so all we need to do is
   // detect when the link goes down and disable the TRN interface until the link
   // comes back up and the AXI interface is finished flushing any packets.
-  else begin : thrtl_ctl_trn_flush
+  begin : thrtl_ctl_trn_flush
     always @(posedge user_clk_out) begin
       if(user_reset) begin
         reg_disable_trn    <= #TCQ 1'b0;
@@ -2295,7 +2267,7 @@ generate
     // Disable the TRN interface if link is down or we're still flushing the AXI
     // interface.
     assign disable_trn = reg_disable_trn || !axi_top_trn_lnk_up;
-  end
+  end : thrtl_ctl_trn_flush
 endgenerate
 
 
@@ -2381,182 +2353,16 @@ generate
     assign s_axis_tx_tready = tready_thrtl;
   end
 
-  //**************************************************************************//
-
-  // If C_PM_PRIORITY is set to TRUE, that means the user prefers to have all PM
-  // functionality intact isntead of TX packet boundary throttling. Now the
-  // Block could back-pressure at any time, which creates the standard problem
-  // of potential data loss due to the handshaking latency. Here we need a
-  // previous value buffer, just like the RX data path.
-  else begin : pm_prioity_pipeline
-    reg  [C_DATA_WIDTH-1:0] tdata_prev;
-    reg                     tvalid_prev;
-    reg    [KEEP_WIDTH-1:0] tkeep_prev;
-    reg                     tlast_prev;
-    reg               [3:0] tuser_prev;
-    reg                     reg_tdst_rdy;
-
-    wire                    data_hold;
-    reg                     data_prev;
-
-
-    //------------------------------------------------------------------------//
-    // Previous value buffer                                                  //
-    // ---------------------                                                  //
-    // We are inserting a pipeline stage in between AXI and TRN, which causes //
-    // some issues with handshaking signals trn_tsrc_rdy/s_axis_tx_tready.    //
-    // The added cycle of latency in the path causes the Block to fall behind //
-    // the AXI interface whenever it throttles.                               //
-    //                                                                        //
-    // To avoid loss of data, we must keep the previous value of all          //
-    // s_axis_tx_* signals in case the Block throttles.                       //
-    //------------------------------------------------------------------------//
-    always @(posedge user_clk_out) begin
-      if(user_reset) begin
-        tdata_prev   <= #TCQ {C_DATA_WIDTH{1'b0}};
-        tvalid_prev  <= #TCQ 1'b0;
-        tkeep_prev   <= #TCQ {KEEP_WIDTH{1'b0}};
-        tlast_prev   <= #TCQ 1'b0;
-        tuser_prev   <= #TCQ 4'h 0;
-      end
-      else begin
-        // prev buffer works by checking s_axis_tx_tready. When
-        // s_axis_tx_tready is asserted, a new value is present on the
-        // interface.
-        if(!s_axis_tx_tready) begin
-          tdata_prev   <= #TCQ tdata_prev;
-          tvalid_prev  <= #TCQ tvalid_prev;
-          tkeep_prev   <= #TCQ tkeep_prev;
-          tlast_prev   <= #TCQ tlast_prev;
-          tuser_prev   <= #TCQ tuser_prev;
-        end
-        else begin
-          tdata_prev   <= #TCQ s_axis_tx_tdata;
-          tvalid_prev  <= #TCQ s_axis_tx_tvalid;
-          tkeep_prev   <= #TCQ s_axis_tx_tkeep;
-          tlast_prev   <= #TCQ s_axis_tx_tlast;
-          tuser_prev   <= #TCQ s_axis_tx_tuser;
-        end
-      end
-    end
-
-    // Create special buffer which locks in the proper value of TDATA depending
-    // on whether the user is throttling or not. This buffer has three states:
-    //
-    //       HOLD state: TDATA maintains its current value
-    //                   - the Block has throttled the PCIe block
-    //   PREVIOUS state: the buffer provides the previous value on TDATA
-    //                   - the Block has finished throttling, and is a little
-    //                     behind the user
-    //    CURRENT state: the buffer passes the current value on TDATA
-    //                   - the Block is caught up and ready to receive the
-    //                     latest data from the user
-    always @(posedge user_clk_out) begin
-      if(user_reset) begin
-        tx_pipe_reg_tdata  <= #TCQ {C_DATA_WIDTH{1'b0}};
-        tx_pipe_reg_tvalid <= #TCQ 1'b0;
-        tx_pipe_reg_tkeep  <= #TCQ {KEEP_WIDTH{1'b0}};
-        tx_pipe_reg_tlast  <= #TCQ 1'b0;
-        tx_pipe_reg_tuser  <= #TCQ 4'h0;
-
-        reg_tdst_rdy <= #TCQ 1'b0;
-      end
-      else begin
-        reg_tdst_rdy <= #TCQ trn_tdst_rdy;
-
-        if(!data_hold) begin
-          // PREVIOUS state
-          if(data_prev) begin
-            tx_pipe_reg_tdata  <= #TCQ tdata_prev;
-            tx_pipe_reg_tvalid <= #TCQ tvalid_prev;
-            tx_pipe_reg_tkeep  <= #TCQ tkeep_prev;
-            tx_pipe_reg_tlast  <= #TCQ tlast_prev;
-            tx_pipe_reg_tuser  <= #TCQ tuser_prev;
-          end
-
-          // CURRENT state
-          else begin
-            tx_pipe_reg_tdata  <= #TCQ s_axis_tx_tdata;
-            tx_pipe_reg_tvalid <= #TCQ s_axis_tx_tvalid;
-            tx_pipe_reg_tkeep  <= #TCQ s_axis_tx_tkeep;
-            tx_pipe_reg_tlast  <= #TCQ s_axis_tx_tlast;
-            tx_pipe_reg_tuser  <= #TCQ s_axis_tx_tuser;
-          end
-        end
-        // else HOLD state
-      end
-    end
-
-
-    // Logic to instruct pipeline to hold its value
-    assign data_hold = trn_tsrc_rdy && !trn_tdst_rdy;
-
-
-    // Logic to instruct pipeline to use previous bus values. Always use
-    // previous value after holding a value.
-    always @(posedge user_clk_out) begin
-      if(user_reset) begin
-        data_prev <= #TCQ 1'b0;
-      end
-      else begin
-        data_prev <= #TCQ data_hold;
-      end
-    end
-
-
-    //------------------------------------------------------------------------//
-    // Create trn_tsrc_rdy. If we're flushing the TRN hold trn_tsrc_rdy low.  //
-    //------------------------------------------------------------------------//
-    assign trn_tsrc_rdy = tx_pipe_reg_tvalid && !disable_trn;
-
-
-    //------------------------------------------------------------------------//
-    // Create TREADY                                                          //
-    //------------------------------------------------------------------------//
-    always @(posedge user_clk_out) begin
-      if(user_reset) begin
-        tx_pipe_reg_tready <= #TCQ 1'b0;
-      end
-      else begin
-        // If the link went down and we need to flush a packet in flight, hold
-        // TREADY high
-        if(flush_axi && !axi_end_packet) begin
-          tx_pipe_reg_tready <= #TCQ 1'b1;
-        end
-
-        // If the link is up, TREADY is as follows:
-        //   TREADY = 1 when trn_tsrc_rdy == 0
-        //      - While idle, keep the pipeline primed and ready for the next
-        //        packet
-        //
-        //   TREADY = trn_tdst_rdy when trn_tsrc_rdy == 1
-        //      - While in packet, throttle pipeline based on state of TRN
-        else if(axi_top_trn_lnk_up) begin
-          tx_pipe_reg_tready <= #TCQ trn_tdst_rdy || !trn_tsrc_rdy;
-        end
-
-        // If the link is down and we're not flushing a packet, hold TREADY low
-        // wait for link to come back up
-        else begin
-          tx_pipe_reg_tready <= #TCQ 1'b0;
-        end
-      end
-    end
-
-    assign s_axis_tx_tready = tx_pipe_reg_tready;
-  end
-
-
   //--------------------------------------------------------------------------//
   // Create flush_axi. This signal detects if the link goes down while the    //
   // AXI interface is in packet. In this situation, we need to flush the      //
   // packet through the AXI interface and discard it.                         //
   //--------------------------------------------------------------------------//
-  always @(posedge user_clk_out) begin
+  always @(posedge user_clk_out) begin :L2555
     if(user_reset) begin
       flush_axi    <= #TCQ 1'b0;
     end
-    else begin
+    else begin : L2559
       // If the AXI interface is in packet and the link goes down, purge it.
       if(tx_pipe_axi_in_packet && !axi_top_trn_lnk_up && !axi_end_packet) begin
         flush_axi <= #TCQ 1'b1;
@@ -2566,8 +2372,8 @@ generate
       else if(axi_end_packet) begin
         flush_axi <= #TCQ 1'b0;
       end
-    end
-  end
+    end : L2559
+  end : L2555
 endgenerate
 
 //end pcie_7x_0_axi_basic_tx_pipeline }
