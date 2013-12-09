@@ -116,7 +116,7 @@ set_property LOC GTXE2_CHANNEL_X1Y4 [get_cells -hierarchical -regexp {.*pipe_lan
 # PCI Express Block placement. This constraint selects the PCI Express
 # Block to be used.
 #
-set_property LOC PCIE_X1Y0 [get_cells -hierarchical -regexp {.*pcie_7x_i/pcie_block_i}]
+set_property LOC PCIE_X1Y0 [get_cells -hierarchical -regexp {.*pcie_block_i}]
 
 #
 # BlockRAM placement
