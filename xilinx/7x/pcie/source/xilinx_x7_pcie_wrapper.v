@@ -1369,7 +1369,6 @@ module xilinx_x7_pcie_wrapper #(
    wire  axi_top_trn_rdllp_src_rdy        =1'b0;             //  input -- Not used in 7-series
    reg   axi_top_cfg_turnoff_ok;
    assign cfg_turnoff_ok_w = axi_top_cfg_turnoff_ok;         //  output
-   wire [2:0] np_counter;                                    //  output
 
 //---------------------------------------------//
 // RX Data Pipeline                            //
@@ -1837,66 +1836,6 @@ always @(posedge user_clk_out) begin
 end
 
 assign dsc_flag = dsc_detect || reg_dsc_detect;
-
-
-
-//----------------------------------------------------------------------------//
-// Create np_counter (V6 128-bit only). This counter tells the V6 128-bit     //
-// interface core how many NP packets have left the RX pipeline. The V6       //
-// 128-bit interface uses this count to perform rnp_ok modulation.            //
-//----------------------------------------------------------------------------//
-generate
-  if(C_FAMILY == "V6" && C_DATA_WIDTH == 128) begin : np_cntr_to_128_enabled
-    reg [2:0] reg_np_counter;
-
-    // Look for NP packets beginning on lower (i.e. unaligned) start
-    wire mrd_lower      = (!(|m_axis_rx_tdata[92:88]) && !m_axis_rx_tdata[94]);
-    wire mrd_lk_lower   = (m_axis_rx_tdata[92:88] == 5'b00001);
-    wire io_rdwr_lower  = (m_axis_rx_tdata[92:88] == 5'b00010);
-    wire cfg_rdwr_lower = (m_axis_rx_tdata[92:89] == 4'b0010);
-    wire atomic_lower   = ((&m_axis_rx_tdata[91:90]) && m_axis_rx_tdata[94]);
-
-    wire np_pkt_lower = (mrd_lower      ||
-                         mrd_lk_lower   ||
-                         io_rdwr_lower  ||
-                         cfg_rdwr_lower ||
-                         atomic_lower) && m_axis_rx_tsof[0];
-
-    // Look for NP packets beginning on upper (i.e. aligned) start
-    wire mrd_upper      = (!(|m_axis_rx_tdata[28:24]) && !m_axis_rx_tdata[30]);
-    wire mrd_lk_upper   = (m_axis_rx_tdata[28:24] == 5'b00001);
-    wire io_rdwr_upper  = (m_axis_rx_tdata[28:24] == 5'b00010);
-    wire cfg_rdwr_upper = (m_axis_rx_tdata[28:25] == 4'b0010);
-    wire atomic_upper   = ((&m_axis_rx_tdata[27:26]) && m_axis_rx_tdata[30]);
-
-    wire np_pkt_upper = (mrd_upper      ||
-                         mrd_lk_upper   ||
-                         io_rdwr_upper  ||
-                         cfg_rdwr_upper ||
-                         atomic_upper) && !m_axis_rx_tsof[0];
-
-    wire pkt_accepted =
-                    m_axis_rx_tsof[1] && m_axis_rx_tready && m_axis_rx_tvalid;
-
-    // Increment counter whenever an NP packet leaves the RX pipeline
-    always @(posedge user_clk_out)  begin
-      if (user_reset) begin
-        reg_np_counter <= #TCQ 0;
-      end
-      else begin
-        if((np_pkt_lower || np_pkt_upper) && pkt_accepted)
-        begin
-          reg_np_counter <= #TCQ reg_np_counter + 3'h1;
-        end
-      end
-    end
-
-    assign np_counter = reg_np_counter;
-  end
-  else begin : np_cntr_to_128_disabled
-    assign np_counter = 3'h0;
-  end
-endgenerate
 
 //end pcie_7x_0_axi_basic_rx_pipeline }
 
@@ -2797,7 +2736,7 @@ assign gap_trig_tlast = (trn_tbuf_av <= TBUF_AV_GAP) &&
 assign gap_trig_decr  = (trn_tbuf_av == (TBUF_AV_GAP)) &&
                                                  (tbuf_av_d == (TBUF_AV_GAP+1));
 
-assign gap_trig_tcfg  = (tcfg_req_thrtl && tcfg_req_exit);
+wire gap_trig_tcfg  = (tcfg_req_thrtl && tcfg_req_exit);
 assign tbuf_av_gap_trig = gap_trig_tlast || gap_trig_decr || gap_trig_tcfg;
 assign tbuf_av_gap_exit = (tbuf_gap_cnt == 0);
 
@@ -2914,25 +2853,6 @@ generate
                            (cfg_pcie_link_state == LINKSTATE_PPM_L1_TRANS);
     assign ppm_L1_exit = cfg_pcie_link_state == LINKSTATE_L0;
   end
-
-  // PPM L1 signals for V6 in RC mode
-  else if((C_FAMILY == "V6") && (C_ROOT_PORT == "TRUE")) begin : v6_L1_thrtl_rp
-    assign ppm_L1_trig = (axi_top_trn_rdllp_data[31:24] == PM_ENTER_L1) &&
-                                      axi_top_trn_rdllp_src_rdy && !trn_rdllp_src_rdy_d;
-    assign ppm_L1_exit = cfg_pcie_link_state == LINKSTATE_PPM_L1;
-  end
-
-  // PPM L1 signals for V6 in EP mode
-  else if((C_FAMILY == "V6") && (C_ROOT_PORT == "FALSE")) begin : v6_L1_thrtl_ep
-    assign ppm_L1_trig = (cfg_pmcsr_powerstate != POWERSTATE_D0);
-    assign ppm_L1_exit = cfg_pcie_link_state == LINKSTATE_L0;
-  end
-
-  // PPM L1 detection not supported for S6
-  else begin : s6_L1_thrtl
-    assign ppm_L1_trig = 1'b0;
-    assign ppm_L1_exit = 1'b1;
-  end
 endgenerate
 
 always @(posedge user_clk_out) begin
@@ -2970,12 +2890,6 @@ generate
     assign wire_to_turnoff = 1'b0;
   end
 
-  // PPM L2/3 signals for V6 in RC mode
-  else if((C_FAMILY == "V6") && (C_ROOT_PORT == "TRUE")) begin : v6_L23_thrtl_rp
-    assign ppm_L23_trig = axi_top_cfg_pm_send_pme_to;
-    assign wire_to_turnoff = 1'b0;
-  end
-
   // PPM L2/3 signals in EP mode
   else begin : L23_thrtl_ep
     assign ppm_L23_trig = wire_to_turnoff && reg_turnoff_ok;
@@ -2998,13 +2912,6 @@ generate
       end
 
       assign wire_to_turnoff = reg_to_turnoff;
-    end
-
-    // PPM L2/3 signals for V6/S6 in EP mode
-    // In V6 and S6, the to_turnoff signal asserts and remains asserted until
-    // turnoff_ok is asserted, so a sticky reg is not necessary.
-    else begin : v6_s6_L23_thrtl_ep
-      assign wire_to_turnoff = cfg_to_turnoff;
     end
 
     always @(posedge user_clk_out) begin
@@ -3258,45 +3165,9 @@ generate
 endgenerate
 
 
-// Logic for 128-bit single cycle bug fix.
-// This tcfg_gnt pipeline addresses an issue with 128-bit V6 designs where a
-// single cycle packet transmitted simultaneously with an assertion of tcfg_gnt
-// from AXI Basic causes the packet to be dropped. The packet drop occurs
-// because the 128-bit shim doesn't know about the tcfg_req/gnt, and therefor
-// isn't expecting trn_tdst_rdy to go low. Since the 128-bit shim does throttle
-// prediction just as we do, it ignores the value of trn_tdst_rdy, and
-// ultimately drops the packet when transmitting the packet to the block.
+// Logic for V6 128-bit single cycle bug fix.
 generate
-  if(C_DATA_WIDTH == 128 && C_FAMILY == "V6") begin : tcfg_gnt_pipeline
-    genvar stage;
-    reg tcfg_gnt_pipe [TCFG_GNT_PIPE_STAGES:0];
-
-    // Create a configurable depth FF delay pipeline
-    for(stage = 0; stage < TCFG_GNT_PIPE_STAGES; stage = stage + 1)
-    begin : tcfg_gnt_pipeline_stage
-
-      always @(posedge user_clk_out) begin
-        if(user_reset) begin
-          tcfg_gnt_pipe[stage] <= #TCQ 1'b0;
-        end
-        else begin
-          // For stage 0, insert the actual tcfg_gnt signal from logic
-          if(stage == 0) begin
-            tcfg_gnt_pipe[stage] <= #TCQ tcfg_gnt_log;
-          end
-
-          // For stages 1+, chain together
-          else begin
-            tcfg_gnt_pipe[stage] <= #TCQ tcfg_gnt_pipe[stage - 1];
-          end
-        end
-      end
-
-      // tcfg_gnt output to block assigned the last pipeline stage
-      assign trn_tcfg_gnt = tcfg_gnt_pipe[TCFG_GNT_PIPE_STAGES-1];
-    end
-  end
-  else begin : tcfg_gnt_no_pipeline
+   begin : tcfg_gnt_no_pipeline
 
     // For all other architectures, no pipeline delay needed for tcfg_gnt
     assign trn_tcfg_gnt = tcfg_gnt_log;
