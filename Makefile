@@ -109,12 +109,6 @@ xilinx/pcie_7x_v2_1: scripts/generate-pcie.tcl
 	mv ./proj_pcie/proj_pcie.srcs/sources_1/ip/pcie_7x_0 xilinx/pcie_7x_v2_1
 	rm -fr ./proj_pcie
 
-k7echoproj:
-	./genxpsprojfrombsv -B kc705 -p k7echoproj -s examples/echo/testecho.cpp -b Echo examples/echo/Echo.bsv && (cd k7echoproj && time make implementation)
-
-v7echoproj:
-	./genxpsprojfrombsv -B vc707 -p v7echoproj -s examples/echo/testecho.cpp -b Echo examples/echo/Echo.bsv && (cd v7echoproj && time make implementation)
-
 test-mempoke/sources/bsim: examples/mempoke/Mempoke.bsv examples/mempoke/testmempoke.cpp
 	-pkill bluetcl
 	rm -fr test-mempoke
@@ -134,3 +128,10 @@ test-ring/sources/bsim: examples/ring/Ring.bsv examples/ring/testring.cpp
 	cd test-ring; make bsim; cd ..
 	test-ring/sources/bsim &
 	test-ring/jni/ring
+
+k7echo:
+	CONTENTID=`git log | head -1 | sed 's/commit //' | cut -c1-16`; echo $$CONTENTID; rm -fr "k7-$$CONTENTID"; git stash save; ./genxpsprojfrombsv -B kc705 -I "64'h$$CONTENTID" -p "k7-$$CONTENTID" -s examples/echo/testecho.cpp -b Echo examples/echo/Echo.bsv; git stash apply; (cd "k7-$$CONTENTID" && time make implementation)
+
+v7echo:
+	CONTENTID=`git log | head -1 | sed 's/commit //' | cut -c1-16`; echo $$CONTENTID; rm -fr "v7-$$CONTENTID"; git stash save; ./genxpsprojfrombsv -B vc707 -I "64'h$$CONTENTID" -p "v7-$$CONTENTID" -s examples/echo/testecho.cpp -b Echo examples/echo/Echo.bsv; git stash apply; (cd "v7-$$CONTENTID" && time make implementation)
+
