@@ -4213,271 +4213,356 @@ pcie_7x_0_pcie_bram_top_7x #(
   //------------------------------------------------------------------------------------------------------------------//
   // PIPE Interface PIPELINE Module                                                                                   //
   //------------------------------------------------------------------------------------------------------------------//
-pcie_7x_0_pcie_pipe_pipeline # (
+//begin pcie_7x_0_pcie_pipe_pipeline {
+// pcie_pipe_pipeline_i
 
-    .LINK_CAP_MAX_LINK_WIDTH ( LINK_CAP_MAX_LINK_WIDTH ),
-    .PIPE_PIPELINE_STAGES    ( PIPE_PIPELINE_STAGES )
+pcie_7x_0_pcie_pipe_misc # (
 
-  )
-  pcie_pipe_pipeline_i (
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
 
-    // Pipe Per-Link Signals
-    .pipe_tx_rcvr_det_i       (pipe_tx_rcvr_det),
-    .pipe_tx_reset_i          (1'b0), //MV?
-    .pipe_tx_rate_i           (pipe_tx_rate),
-    .pipe_tx_deemph_i         (pipe_tx_deemph),
-    .pipe_tx_margin_i         (pipe_tx_margin),
-    .pipe_tx_swing_i          (1'b0),
+    )
+    pipe_misc_i (
 
-    .pipe_tx_rcvr_det_o       (pipe_tx_rcvr_det_gt),
-    .pipe_tx_reset_o          ( ),
-    .pipe_tx_rate_o           (pipe_tx_rate_gt),
-    .pipe_tx_deemph_o         (pipe_tx_deemph_gt),
-    .pipe_tx_margin_o         (pipe_tx_margin_gt),
-    .pipe_tx_swing_o          ( ),
+      .pipe_tx_rcvr_det_i(pipe_tx_rcvr_det),
+      .pipe_tx_reset_i( 1'b0 ),
+      .pipe_tx_rate_i(pipe_tx_rate),
+      .pipe_tx_deemph_i(pipe_tx_deemph),
+      .pipe_tx_margin_i(pipe_tx_margin),
+      .pipe_tx_swing_i( 1'b0 ),
 
-    // Pipe Per-Lane Signals - Lane 0
+      .pipe_tx_rcvr_det_o(pipe_tx_rcvr_det_gt),
+      .pipe_tx_reset_o( ),
+      .pipe_tx_rate_o(pipe_tx_rate_gt),
+      .pipe_tx_deemph_o(pipe_tx_deemph_gt),
+      .pipe_tx_margin_o(pipe_tx_margin_gt),
+      .pipe_tx_swing_o( ),
 
-    .pipe_rx0_char_is_k_o     (pipe_rx0_char_is_k     ),
-    .pipe_rx0_data_o          (pipe_rx0_data          ),
-    .pipe_rx0_valid_o         (pipe_rx0_valid         ),
-    .pipe_rx0_chanisaligned_o (pipe_rx0_chanisaligned ),
-    .pipe_rx0_status_o        (pipe_rx0_status        ),
-    .pipe_rx0_phy_status_o    (pipe_rx0_phy_status    ),
-    .pipe_rx0_elec_idle_i     (pipe_rx0_elec_idle_gt  ),
-    .pipe_rx0_polarity_i      (pipe_rx0_polarity      ),
-    .pipe_tx0_compliance_i    (pipe_tx0_compliance    ),
-    .pipe_tx0_char_is_k_i     (pipe_tx0_char_is_k     ),
-    .pipe_tx0_data_i          (pipe_tx0_data          ),
-    .pipe_tx0_elec_idle_i     (pipe_tx0_elec_idle     ),
-    .pipe_tx0_powerdown_i     (pipe_tx0_powerdown     ),
-
-    .pipe_rx0_char_is_k_i     (pipe_rx0_char_is_k_gt  ),
-    .pipe_rx0_data_i          (pipe_rx0_data_gt       ),
-    .pipe_rx0_valid_i         (pipe_rx0_valid_gt      ),
-    .pipe_rx0_chanisaligned_i (pipe_rx0_chanisaligned_gt),
-    .pipe_rx0_status_i        (pipe_rx0_status_gt     ),
-    .pipe_rx0_phy_status_i    (pipe_rx0_phy_status_gt ),
-    .pipe_rx0_elec_idle_o     (pipe_rx0_elec_idle     ),
-    .pipe_rx0_polarity_o      (pipe_rx0_polarity_gt   ),
-    .pipe_tx0_compliance_o    (pipe_tx0_compliance_gt ),
-    .pipe_tx0_char_is_k_o     (pipe_tx0_char_is_k_gt  ),
-    .pipe_tx0_data_o          (pipe_tx0_data_gt       ),
-    .pipe_tx0_elec_idle_o     (pipe_tx0_elec_idle_gt  ),
-    .pipe_tx0_powerdown_o     (pipe_tx0_powerdown_gt  ),
-
-    // Pipe Per-Lane Signals - Lane 1
-
-    .pipe_rx1_char_is_k_o     (pipe_rx1_char_is_k     ),
-    .pipe_rx1_data_o          (pipe_rx1_data          ),
-    .pipe_rx1_valid_o         (pipe_rx1_valid         ),
-    .pipe_rx1_chanisaligned_o (pipe_rx1_chanisaligned ),
-    .pipe_rx1_status_o        (pipe_rx1_status        ),
-    .pipe_rx1_phy_status_o    (pipe_rx1_phy_status    ),
-    .pipe_rx1_elec_idle_i     (pipe_rx1_elec_idle_gt  ),
-    .pipe_rx1_polarity_i      (pipe_rx1_polarity      ),
-    .pipe_tx1_compliance_i    (pipe_tx1_compliance    ),
-    .pipe_tx1_char_is_k_i     (pipe_tx1_char_is_k     ),
-    .pipe_tx1_data_i          (pipe_tx1_data          ),
-    .pipe_tx1_elec_idle_i     (pipe_tx1_elec_idle     ),
-    .pipe_tx1_powerdown_i     (pipe_tx1_powerdown     ),
-
-    .pipe_rx1_char_is_k_i     (pipe_rx1_char_is_k_gt  ),
-    .pipe_rx1_data_i          (pipe_rx1_data_gt       ),
-    .pipe_rx1_valid_i         (pipe_rx1_valid_gt      ),
-    .pipe_rx1_chanisaligned_i (pipe_rx1_chanisaligned_gt),
-    .pipe_rx1_status_i        (pipe_rx1_status_gt     ),
-    .pipe_rx1_phy_status_i    (pipe_rx1_phy_status_gt ),
-    .pipe_rx1_elec_idle_o     (pipe_rx1_elec_idle     ),
-    .pipe_rx1_polarity_o      (pipe_rx1_polarity_gt   ),
-    .pipe_tx1_compliance_o    (pipe_tx1_compliance_gt ),
-    .pipe_tx1_char_is_k_o     (pipe_tx1_char_is_k_gt  ),
-    .pipe_tx1_data_o          (pipe_tx1_data_gt       ),
-    .pipe_tx1_elec_idle_o     (pipe_tx1_elec_idle_gt  ),
-    .pipe_tx1_powerdown_o     (pipe_tx1_powerdown_gt  ),
-
-    // Pipe Per-Lane Signals - Lane 2
-
-    .pipe_rx2_char_is_k_o     (pipe_rx2_char_is_k     ),
-    .pipe_rx2_data_o          (pipe_rx2_data          ),
-    .pipe_rx2_valid_o         (pipe_rx2_valid         ),
-    .pipe_rx2_chanisaligned_o (pipe_rx2_chanisaligned ),
-    .pipe_rx2_status_o        (pipe_rx2_status        ),
-    .pipe_rx2_phy_status_o    (pipe_rx2_phy_status    ),
-    .pipe_rx2_elec_idle_i     (pipe_rx2_elec_idle_gt  ),
-    .pipe_rx2_polarity_i      (pipe_rx2_polarity      ),
-    .pipe_tx2_compliance_i    (pipe_tx2_compliance    ),
-    .pipe_tx2_char_is_k_i     (pipe_tx2_char_is_k     ),
-    .pipe_tx2_data_i          (pipe_tx2_data          ),
-    .pipe_tx2_elec_idle_i     (pipe_tx2_elec_idle     ),
-    .pipe_tx2_powerdown_i     (pipe_tx2_powerdown     ),
-
-    .pipe_rx2_char_is_k_i     (pipe_rx2_char_is_k_gt  ),
-    .pipe_rx2_data_i          (pipe_rx2_data_gt       ),
-    .pipe_rx2_valid_i         (pipe_rx2_valid_gt      ),
-    .pipe_rx2_chanisaligned_i (pipe_rx2_chanisaligned_gt),
-    .pipe_rx2_status_i        (pipe_rx2_status_gt     ),
-    .pipe_rx2_phy_status_i    (pipe_rx2_phy_status_gt ),
-    .pipe_rx2_elec_idle_o     (pipe_rx2_elec_idle     ),
-    .pipe_rx2_polarity_o      (pipe_rx2_polarity_gt   ),
-    .pipe_tx2_compliance_o    (pipe_tx2_compliance_gt ),
-    .pipe_tx2_char_is_k_o     (pipe_tx2_char_is_k_gt  ),
-    .pipe_tx2_data_o          (pipe_tx2_data_gt       ),
-    .pipe_tx2_elec_idle_o     (pipe_tx2_elec_idle_gt  ),
-    .pipe_tx2_powerdown_o     (pipe_tx2_powerdown_gt  ),
-
-    // Pipe Per-Lane Signals - Lane 3
-
-    .pipe_rx3_char_is_k_o     (pipe_rx3_char_is_k     ),
-    .pipe_rx3_data_o          (pipe_rx3_data          ),
-    .pipe_rx3_valid_o         (pipe_rx3_valid         ),
-    .pipe_rx3_chanisaligned_o (pipe_rx3_chanisaligned ),
-    .pipe_rx3_status_o        (pipe_rx3_status        ),
-    .pipe_rx3_phy_status_o    (pipe_rx3_phy_status    ),
-    .pipe_rx3_elec_idle_i     (pipe_rx3_elec_idle_gt  ),
-    .pipe_rx3_polarity_i      (pipe_rx3_polarity      ),
-    .pipe_tx3_compliance_i    (pipe_tx3_compliance    ),
-    .pipe_tx3_char_is_k_i     (pipe_tx3_char_is_k     ),
-    .pipe_tx3_data_i          (pipe_tx3_data          ),
-    .pipe_tx3_elec_idle_i     (pipe_tx3_elec_idle     ),
-    .pipe_tx3_powerdown_i     (pipe_tx3_powerdown     ),
-
-    .pipe_rx3_char_is_k_i     (pipe_rx3_char_is_k_gt  ),
-    .pipe_rx3_data_i          (pipe_rx3_data_gt       ),
-    .pipe_rx3_valid_i         (pipe_rx3_valid_gt      ),
-    .pipe_rx3_chanisaligned_i (pipe_rx3_chanisaligned_gt),
-    .pipe_rx3_status_i        (pipe_rx3_status_gt     ),
-    .pipe_rx3_phy_status_i    (pipe_rx3_phy_status_gt ),
-    .pipe_rx3_elec_idle_o     (pipe_rx3_elec_idle     ),
-    .pipe_rx3_polarity_o      (pipe_rx3_polarity_gt   ),
-    .pipe_tx3_compliance_o    (pipe_tx3_compliance_gt ),
-    .pipe_tx3_char_is_k_o     (pipe_tx3_char_is_k_gt  ),
-    .pipe_tx3_data_o          (pipe_tx3_data_gt       ),
-    .pipe_tx3_elec_idle_o     (pipe_tx3_elec_idle_gt  ),
-    .pipe_tx3_powerdown_o     (pipe_tx3_powerdown_gt  ),
-
-     // Pipe Per-Lane Signals - Lane 4
-
-    .pipe_rx4_char_is_k_o     (pipe_rx4_char_is_k     ),
-    .pipe_rx4_data_o          (pipe_rx4_data          ),
-    .pipe_rx4_valid_o         (pipe_rx4_valid         ),
-    .pipe_rx4_chanisaligned_o (pipe_rx4_chanisaligned ),
-    .pipe_rx4_status_o        (pipe_rx4_status        ),
-    .pipe_rx4_phy_status_o    (pipe_rx4_phy_status    ),
-    .pipe_rx4_elec_idle_i     (pipe_rx4_elec_idle_gt  ),
-    .pipe_rx4_polarity_i      (pipe_rx4_polarity      ),
-    .pipe_tx4_compliance_i    (pipe_tx4_compliance    ),
-    .pipe_tx4_char_is_k_i     (pipe_tx4_char_is_k     ),
-    .pipe_tx4_data_i          (pipe_tx4_data          ),
-    .pipe_tx4_elec_idle_i     (pipe_tx4_elec_idle     ),
-    .pipe_tx4_powerdown_i     (pipe_tx4_powerdown     ),
-    .pipe_rx4_char_is_k_i     (pipe_rx4_char_is_k_gt  ),
-    .pipe_rx4_data_i          (pipe_rx4_data_gt       ),
-    .pipe_rx4_valid_i         (pipe_rx4_valid_gt      ),
-    .pipe_rx4_chanisaligned_i (pipe_rx4_chanisaligned_gt),
-    .pipe_rx4_status_i        (pipe_rx4_status_gt     ),
-    .pipe_rx4_phy_status_i    (pipe_rx4_phy_status_gt ),
-    .pipe_rx4_elec_idle_o     (pipe_rx4_elec_idle     ),
-    .pipe_rx4_polarity_o      (pipe_rx4_polarity_gt   ),
-    .pipe_tx4_compliance_o    (pipe_tx4_compliance_gt ),
-    .pipe_tx4_char_is_k_o     (pipe_tx4_char_is_k_gt  ),
-    .pipe_tx4_data_o          (pipe_tx4_data_gt       ),
-    .pipe_tx4_elec_idle_o     (pipe_tx4_elec_idle_gt  ),
-    .pipe_tx4_powerdown_o     (pipe_tx4_powerdown_gt  ),
-
-    // Pipe Per-Lane Signals - Lane 5
-
-    .pipe_rx5_char_is_k_o     (pipe_rx5_char_is_k     ),
-    .pipe_rx5_data_o          (pipe_rx5_data          ),
-    .pipe_rx5_valid_o         (pipe_rx5_valid         ),
-    .pipe_rx5_chanisaligned_o (pipe_rx5_chanisaligned ),
-    .pipe_rx5_status_o        (pipe_rx5_status        ),
-    .pipe_rx5_phy_status_o    (pipe_rx5_phy_status    ),
-    .pipe_rx5_elec_idle_i     (pipe_rx5_elec_idle_gt  ),
-    .pipe_rx5_polarity_i      (pipe_rx5_polarity      ),
-    .pipe_tx5_compliance_i    (pipe_tx5_compliance    ),
-    .pipe_tx5_char_is_k_i     (pipe_tx5_char_is_k     ),
-    .pipe_tx5_data_i          (pipe_tx5_data          ),
-    .pipe_tx5_elec_idle_i     (pipe_tx5_elec_idle     ),
-    .pipe_tx5_powerdown_i     (pipe_tx5_powerdown     ),
-    .pipe_rx5_char_is_k_i     (pipe_rx5_char_is_k_gt  ),
-    .pipe_rx5_data_i          (pipe_rx5_data_gt       ),
-    .pipe_rx5_valid_i         (pipe_rx5_valid_gt      ),
-    .pipe_rx5_chanisaligned_i (pipe_rx5_chanisaligned_gt),
-    .pipe_rx5_status_i        (pipe_rx5_status_gt     ),
-    .pipe_rx5_phy_status_i    (pipe_rx5_phy_status_gt ),
-    .pipe_rx5_elec_idle_o     (pipe_rx5_elec_idle     ),
-    .pipe_rx5_polarity_o      (pipe_rx5_polarity_gt   ),
-    .pipe_tx5_compliance_o    (pipe_tx5_compliance_gt ),
-    .pipe_tx5_char_is_k_o     (pipe_tx5_char_is_k_gt  ),
-    .pipe_tx5_data_o          (pipe_tx5_data_gt       ),
-    .pipe_tx5_elec_idle_o     (pipe_tx5_elec_idle_gt  ),
-    .pipe_tx5_powerdown_o     (pipe_tx5_powerdown_gt  ),
-
-    // Pipe Per-Lane Signals - Lane 6
-
-    .pipe_rx6_char_is_k_o     (pipe_rx6_char_is_k     ),
-    .pipe_rx6_data_o          (pipe_rx6_data          ),
-    .pipe_rx6_valid_o         (pipe_rx6_valid         ),
-    .pipe_rx6_chanisaligned_o (pipe_rx6_chanisaligned ),
-    .pipe_rx6_status_o        (pipe_rx6_status        ),
-    .pipe_rx6_phy_status_o    (pipe_rx6_phy_status    ),
-    .pipe_rx6_elec_idle_i     (pipe_rx6_elec_idle_gt  ),
-    .pipe_rx6_polarity_i      (pipe_rx6_polarity      ),
-    .pipe_tx6_compliance_i    (pipe_tx6_compliance    ),
-    .pipe_tx6_char_is_k_i     (pipe_tx6_char_is_k     ),
-    .pipe_tx6_data_i          (pipe_tx6_data          ),
-    .pipe_tx6_elec_idle_i     (pipe_tx6_elec_idle     ),
-    .pipe_tx6_powerdown_i     (pipe_tx6_powerdown     ),
-    .pipe_rx6_char_is_k_i     (pipe_rx6_char_is_k_gt  ),
-    .pipe_rx6_data_i          (pipe_rx6_data_gt       ),
-    .pipe_rx6_valid_i         (pipe_rx6_valid_gt      ),
-    .pipe_rx6_chanisaligned_i (pipe_rx6_chanisaligned_gt),
-    .pipe_rx6_status_i        (pipe_rx6_status_gt     ),
-    .pipe_rx6_phy_status_i    (pipe_rx6_phy_status_gt ),
-    .pipe_rx6_elec_idle_o     (pipe_rx6_elec_idle     ),
-    .pipe_rx6_polarity_o      (pipe_rx6_polarity_gt   ),
-    .pipe_tx6_compliance_o    (pipe_tx6_compliance_gt ),
-    .pipe_tx6_char_is_k_o     (pipe_tx6_char_is_k_gt  ),
-    .pipe_tx6_data_o          (pipe_tx6_data_gt       ),
-    .pipe_tx6_elec_idle_o     (pipe_tx6_elec_idle_gt  ),
-    .pipe_tx6_powerdown_o     (pipe_tx6_powerdown_gt  ),
-
-    // Pipe Per-Lane Signals - Lane 7
-
-    .pipe_rx7_char_is_k_o     (pipe_rx7_char_is_k     ),
-    .pipe_rx7_data_o          (pipe_rx7_data          ),
-    .pipe_rx7_valid_o         (pipe_rx7_valid         ),
-    .pipe_rx7_chanisaligned_o (pipe_rx7_chanisaligned ),
-    .pipe_rx7_status_o        (pipe_rx7_status        ),
-    .pipe_rx7_phy_status_o    (pipe_rx7_phy_status    ),
-    .pipe_rx7_elec_idle_i     (pipe_rx7_elec_idle_gt  ),
-    .pipe_rx7_polarity_i      (pipe_rx7_polarity      ),
-    .pipe_tx7_compliance_i    (pipe_tx7_compliance    ),
-    .pipe_tx7_char_is_k_i     (pipe_tx7_char_is_k     ),
-    .pipe_tx7_data_i          (pipe_tx7_data          ),
-    .pipe_tx7_elec_idle_i     (pipe_tx7_elec_idle     ),
-    .pipe_tx7_powerdown_i     (pipe_tx7_powerdown     ),
-    .pipe_rx7_char_is_k_i     (pipe_rx7_char_is_k_gt  ),
-    .pipe_rx7_data_i          (pipe_rx7_data_gt       ),
-    .pipe_rx7_valid_i         (pipe_rx7_valid_gt      ),
-    .pipe_rx7_chanisaligned_i (pipe_rx7_chanisaligned_gt),
-    .pipe_rx7_status_i        (pipe_rx7_status_gt     ),
-    .pipe_rx7_phy_status_i    (pipe_rx7_phy_status_gt ),
-    .pipe_rx7_elec_idle_o     (pipe_rx7_elec_idle     ),
-    .pipe_rx7_polarity_o      (pipe_rx7_polarity_gt   ),
-    .pipe_tx7_compliance_o    (pipe_tx7_compliance_gt ),
-    .pipe_tx7_char_is_k_o     (pipe_tx7_char_is_k_gt  ),
-    .pipe_tx7_data_o          (pipe_tx7_data_gt       ),
-    .pipe_tx7_elec_idle_o     (pipe_tx7_elec_idle_gt  ),
-    .pipe_tx7_powerdown_o     (pipe_tx7_powerdown_gt  ),
-
-    // Non PIPE signals
-    .pipe_clk                 (pipe_clk               ),
-    .rst_n                    (phy_rdy_n              )
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
   );
 
 
+pcie_7x_0_pcie_pipe_lane # (
+
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
+
+    )
+    pipe_lane_0_i (
+
+      .pipe_rx_chanisaligned_i(pipe_rx0_chanisaligned_gt),
+      .pipe_rx_char_is_k_i(pipe_rx0_char_is_k_gt),
+      .pipe_rx_data_i(pipe_rx0_data_gt),
+      .pipe_rx_elec_idle_i(pipe_rx0_elec_idle_gt),
+      .pipe_rx_phy_status_i(pipe_rx0_phy_status_gt),
+      .pipe_rx_polarity_i(pipe_rx0_polarity),
+      .pipe_rx_status_i(pipe_rx0_status_gt),
+      .pipe_rx_valid_i(pipe_rx0_valid_gt),
+      .pipe_tx_char_is_k_i(pipe_tx0_char_is_k),
+      .pipe_tx_compliance_i(pipe_tx0_compliance),
+      .pipe_tx_data_i(pipe_tx0_data),
+      .pipe_tx_elec_idle_i(pipe_tx0_elec_idle),
+      .pipe_tx_powerdown_i(pipe_tx0_powerdown),
+
+      .pipe_rx_chanisaligned_o(pipe_rx0_chanisaligned),
+      .pipe_rx_char_is_k_o(pipe_rx0_char_is_k),
+      .pipe_rx_data_o(pipe_rx0_data),
+      .pipe_rx_elec_idle_o(pipe_rx0_elec_idle),
+      .pipe_rx_phy_status_o(pipe_rx0_phy_status),
+      .pipe_rx_polarity_o(pipe_rx0_polarity_gt),
+      .pipe_rx_status_o(pipe_rx0_status),
+      .pipe_rx_valid_o(pipe_rx0_valid),
+      .pipe_tx_char_is_k_o(pipe_tx0_char_is_k_gt),
+      .pipe_tx_compliance_o(pipe_tx0_compliance_gt),
+      .pipe_tx_data_o(pipe_tx0_data_gt),
+      .pipe_tx_elec_idle_o(pipe_tx0_elec_idle_gt),
+      .pipe_tx_powerdown_o(pipe_tx0_powerdown_gt),
+
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
+
+    );
+
+pcie_7x_0_pcie_pipe_lane # (
+
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
+
+    )
+    pipe_lane_1_i (
+
+      .pipe_rx_chanisaligned_i(pipe_rx1_chanisaligned_gt),
+      .pipe_rx_char_is_k_i(pipe_rx1_char_is_k_gt),
+      .pipe_rx_data_i(pipe_rx1_data_gt),
+      .pipe_rx_elec_idle_i(pipe_rx1_elec_idle_gt),
+      .pipe_rx_phy_status_i(pipe_rx1_phy_status_gt),
+      .pipe_rx_polarity_i(pipe_rx1_polarity),
+      .pipe_rx_status_i(pipe_rx1_status_gt),
+      .pipe_rx_valid_i(pipe_rx1_valid_gt),
+      .pipe_tx_char_is_k_i(pipe_tx1_char_is_k),
+      .pipe_tx_compliance_i(pipe_tx1_compliance),
+      .pipe_tx_data_i(pipe_tx1_data),
+      .pipe_tx_elec_idle_i(pipe_tx1_elec_idle),
+      .pipe_tx_powerdown_i(pipe_tx1_powerdown),
+
+      .pipe_rx_chanisaligned_o(pipe_rx1_chanisaligned),
+      .pipe_rx_char_is_k_o(pipe_rx1_char_is_k),
+      .pipe_rx_data_o(pipe_rx1_data),
+      .pipe_rx_elec_idle_o(pipe_rx1_elec_idle),
+      .pipe_rx_phy_status_o(pipe_rx1_phy_status),
+      .pipe_rx_polarity_o(pipe_rx1_polarity_gt),
+      .pipe_rx_status_o(pipe_rx1_status),
+      .pipe_rx_valid_o(pipe_rx1_valid),
+      .pipe_tx_char_is_k_o(pipe_tx1_char_is_k_gt),
+      .pipe_tx_compliance_o(pipe_tx1_compliance_gt),
+      .pipe_tx_data_o(pipe_tx1_data_gt),
+      .pipe_tx_elec_idle_o(pipe_tx1_elec_idle_gt),
+      .pipe_tx_powerdown_o(pipe_tx1_powerdown_gt),
+
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
+
+    );
+
+pcie_7x_0_pcie_pipe_lane # (
+
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
+
+    )
+    pipe_lane_2_i (
+
+      .pipe_rx_chanisaligned_i(pipe_rx2_chanisaligned_gt),
+      .pipe_rx_char_is_k_i(pipe_rx2_char_is_k_gt),
+      .pipe_rx_data_i(pipe_rx2_data_gt),
+      .pipe_rx_elec_idle_i(pipe_rx2_elec_idle_gt),
+      .pipe_rx_phy_status_i(pipe_rx2_phy_status_gt),
+      .pipe_rx_polarity_i(pipe_rx2_polarity),
+      .pipe_rx_status_i(pipe_rx2_status_gt),
+      .pipe_rx_valid_i(pipe_rx2_valid_gt),
+      .pipe_tx_char_is_k_i(pipe_tx2_char_is_k),
+      .pipe_tx_compliance_i(pipe_tx2_compliance),
+      .pipe_tx_data_i(pipe_tx2_data),
+      .pipe_tx_elec_idle_i(pipe_tx2_elec_idle),
+      .pipe_tx_powerdown_i(pipe_tx2_powerdown),
+
+      .pipe_rx_chanisaligned_o(pipe_rx2_chanisaligned),
+      .pipe_rx_char_is_k_o(pipe_rx2_char_is_k),
+      .pipe_rx_data_o(pipe_rx2_data),
+      .pipe_rx_elec_idle_o(pipe_rx2_elec_idle),
+      .pipe_rx_phy_status_o(pipe_rx2_phy_status),
+      .pipe_rx_polarity_o(pipe_rx2_polarity_gt),
+      .pipe_rx_status_o(pipe_rx2_status),
+      .pipe_rx_valid_o(pipe_rx2_valid),
+      .pipe_tx_char_is_k_o(pipe_tx2_char_is_k_gt),
+      .pipe_tx_compliance_o(pipe_tx2_compliance_gt),
+      .pipe_tx_data_o(pipe_tx2_data_gt),
+      .pipe_tx_elec_idle_o(pipe_tx2_elec_idle_gt),
+      .pipe_tx_powerdown_o(pipe_tx2_powerdown_gt),
+
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
+
+    );
+
+pcie_7x_0_pcie_pipe_lane # (
+
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
+
+    )
+    pipe_lane_3_i (
+
+      .pipe_rx_chanisaligned_i(pipe_rx3_chanisaligned_gt),
+      .pipe_rx_char_is_k_i(pipe_rx3_char_is_k_gt),
+      .pipe_rx_data_i(pipe_rx3_data_gt),
+      .pipe_rx_elec_idle_i(pipe_rx3_elec_idle_gt),
+      .pipe_rx_phy_status_i(pipe_rx3_phy_status_gt),
+      .pipe_rx_polarity_i(pipe_rx3_polarity),
+      .pipe_rx_status_i(pipe_rx3_status_gt),
+      .pipe_rx_valid_i(pipe_rx3_valid_gt),
+      .pipe_tx_char_is_k_i(pipe_tx3_char_is_k),
+      .pipe_tx_compliance_i(pipe_tx3_compliance),
+      .pipe_tx_data_i(pipe_tx3_data),
+      .pipe_tx_elec_idle_i(pipe_tx3_elec_idle),
+      .pipe_tx_powerdown_i(pipe_tx3_powerdown),
+
+      .pipe_rx_chanisaligned_o(pipe_rx3_chanisaligned),
+      .pipe_rx_char_is_k_o(pipe_rx3_char_is_k),
+      .pipe_rx_data_o(pipe_rx3_data),
+      .pipe_rx_elec_idle_o(pipe_rx3_elec_idle),
+      .pipe_rx_phy_status_o(pipe_rx3_phy_status),
+      .pipe_rx_polarity_o(pipe_rx3_polarity_gt),
+      .pipe_rx_status_o(pipe_rx3_status),
+      .pipe_rx_valid_o(pipe_rx3_valid),
+      .pipe_tx_char_is_k_o(pipe_tx3_char_is_k_gt),
+      .pipe_tx_compliance_o(pipe_tx3_compliance_gt),
+      .pipe_tx_data_o(pipe_tx3_data_gt),
+      .pipe_tx_elec_idle_o(pipe_tx3_elec_idle_gt),
+      .pipe_tx_powerdown_o(pipe_tx3_powerdown_gt),
+
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
+
+    );
+
+pcie_7x_0_pcie_pipe_lane # (
+
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
+
+    )
+    pipe_lane_4_i (
+
+      .pipe_rx_chanisaligned_i(pipe_rx4_chanisaligned_gt),
+      .pipe_rx_char_is_k_i(pipe_rx4_char_is_k_gt),
+      .pipe_rx_data_i(pipe_rx4_data_gt),
+      .pipe_rx_elec_idle_i(pipe_rx4_elec_idle_gt),
+      .pipe_rx_phy_status_i(pipe_rx4_phy_status_gt),
+      .pipe_rx_polarity_i(pipe_rx4_polarity),
+      .pipe_rx_status_i(pipe_rx4_status_gt),
+      .pipe_rx_valid_i(pipe_rx4_valid_gt),
+      .pipe_tx_char_is_k_i(pipe_tx4_char_is_k),
+      .pipe_tx_compliance_i(pipe_tx4_compliance),
+      .pipe_tx_data_i(pipe_tx4_data),
+      .pipe_tx_elec_idle_i(pipe_tx4_elec_idle),
+      .pipe_tx_powerdown_i(pipe_tx4_powerdown),
+
+      .pipe_rx_chanisaligned_o(pipe_rx4_chanisaligned),
+      .pipe_rx_char_is_k_o(pipe_rx4_char_is_k),
+      .pipe_rx_data_o(pipe_rx4_data),
+      .pipe_rx_elec_idle_o(pipe_rx4_elec_idle),
+      .pipe_rx_phy_status_o(pipe_rx4_phy_status),
+      .pipe_rx_polarity_o(pipe_rx4_polarity_gt),
+      .pipe_rx_status_o(pipe_rx4_status),
+      .pipe_rx_valid_o(pipe_rx4_valid),
+      .pipe_tx_char_is_k_o(pipe_tx4_char_is_k_gt),
+      .pipe_tx_compliance_o(pipe_tx4_compliance_gt),
+      .pipe_tx_data_o(pipe_tx4_data_gt),
+      .pipe_tx_elec_idle_o(pipe_tx4_elec_idle_gt),
+      .pipe_tx_powerdown_o(pipe_tx4_powerdown_gt),
+
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
+
+    );
+
+pcie_7x_0_pcie_pipe_lane # (
+
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
+
+    )
+    pipe_lane_5_i (
+
+      .pipe_rx_chanisaligned_i(pipe_rx5_chanisaligned_gt),
+      .pipe_rx_char_is_k_i(pipe_rx5_char_is_k_gt),
+      .pipe_rx_data_i(pipe_rx5_data_gt),
+      .pipe_rx_elec_idle_i(pipe_rx5_elec_idle_gt),
+      .pipe_rx_phy_status_i(pipe_rx5_phy_status_gt),
+      .pipe_rx_polarity_i(pipe_rx5_polarity),
+      .pipe_rx_status_i(pipe_rx5_status_gt),
+      .pipe_rx_valid_i(pipe_rx5_valid_gt),
+      .pipe_tx_char_is_k_i(pipe_tx5_char_is_k),
+      .pipe_tx_compliance_i(pipe_tx5_compliance),
+      .pipe_tx_data_i(pipe_tx5_data),
+      .pipe_tx_elec_idle_i(pipe_tx5_elec_idle),
+      .pipe_tx_powerdown_i(pipe_tx5_powerdown),
+
+      .pipe_rx_chanisaligned_o(pipe_rx5_chanisaligned),
+      .pipe_rx_char_is_k_o(pipe_rx5_char_is_k),
+      .pipe_rx_data_o(pipe_rx5_data),
+      .pipe_rx_elec_idle_o(pipe_rx5_elec_idle),
+      .pipe_rx_phy_status_o(pipe_rx5_phy_status),
+      .pipe_rx_polarity_o(pipe_rx5_polarity_gt),
+      .pipe_rx_status_o(pipe_rx5_status),
+      .pipe_rx_valid_o(pipe_rx5_valid),
+      .pipe_tx_char_is_k_o(pipe_tx5_char_is_k_gt),
+      .pipe_tx_compliance_o(pipe_tx5_compliance_gt),
+      .pipe_tx_data_o(pipe_tx5_data_gt),
+      .pipe_tx_elec_idle_o(pipe_tx5_elec_idle_gt),
+      .pipe_tx_powerdown_o(pipe_tx5_powerdown_gt),
+
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
+
+    );
+
+pcie_7x_0_pcie_pipe_lane # (
+
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
+
+    )
+    pipe_lane_6_i (
+
+      .pipe_rx_chanisaligned_i(pipe_rx6_chanisaligned_gt),
+      .pipe_rx_char_is_k_i(pipe_rx6_char_is_k_gt),
+      .pipe_rx_data_i(pipe_rx6_data_gt),
+      .pipe_rx_elec_idle_i(pipe_rx6_elec_idle_gt),
+      .pipe_rx_phy_status_i(pipe_rx6_phy_status_gt),
+      .pipe_rx_polarity_i(pipe_rx6_polarity),
+      .pipe_rx_status_i(pipe_rx6_status_gt),
+      .pipe_rx_valid_i(pipe_rx6_valid_gt),
+      .pipe_tx_char_is_k_i(pipe_tx6_char_is_k),
+      .pipe_tx_compliance_i(pipe_tx6_compliance),
+      .pipe_tx_data_i(pipe_tx6_data),
+      .pipe_tx_elec_idle_i(pipe_tx6_elec_idle),
+      .pipe_tx_powerdown_i(pipe_tx6_powerdown),
+
+      .pipe_rx_chanisaligned_o(pipe_rx6_chanisaligned),
+      .pipe_rx_char_is_k_o(pipe_rx6_char_is_k),
+      .pipe_rx_data_o(pipe_rx6_data),
+      .pipe_rx_elec_idle_o(pipe_rx6_elec_idle),
+      .pipe_rx_phy_status_o(pipe_rx6_phy_status),
+      .pipe_rx_polarity_o(pipe_rx6_polarity_gt),
+      .pipe_rx_status_o(pipe_rx6_status),
+      .pipe_rx_valid_o(pipe_rx6_valid),
+      .pipe_tx_char_is_k_o(pipe_tx6_char_is_k_gt),
+      .pipe_tx_compliance_o(pipe_tx6_compliance_gt),
+      .pipe_tx_data_o(pipe_tx6_data_gt),
+      .pipe_tx_elec_idle_o(pipe_tx6_elec_idle_gt),
+      .pipe_tx_powerdown_o(pipe_tx6_powerdown_gt),
+
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
+
+    );
+
+pcie_7x_0_pcie_pipe_lane # (
+
+      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
+
+    )
+    pipe_lane_7_i (
+
+      .pipe_rx_chanisaligned_i(pipe_rx7_chanisaligned_gt),
+      .pipe_rx_char_is_k_i(pipe_rx7_char_is_k_gt),
+      .pipe_rx_data_i(pipe_rx7_data_gt),
+      .pipe_rx_elec_idle_i(pipe_rx7_elec_idle_gt),
+      .pipe_rx_phy_status_i(pipe_rx7_phy_status_gt),
+      .pipe_rx_polarity_i(pipe_rx7_polarity),
+      .pipe_rx_status_i(pipe_rx7_status_gt),
+      .pipe_rx_valid_i(pipe_rx7_valid_gt),
+      .pipe_tx_char_is_k_i(pipe_tx7_char_is_k),
+      .pipe_tx_compliance_i(pipe_tx7_compliance),
+      .pipe_tx_data_i(pipe_tx7_data),
+      .pipe_tx_elec_idle_i(pipe_tx7_elec_idle),
+      .pipe_tx_powerdown_i(pipe_tx7_powerdown),
+
+      .pipe_rx_chanisaligned_o(pipe_rx7_chanisaligned),
+      .pipe_rx_char_is_k_o(pipe_rx7_char_is_k),
+      .pipe_rx_data_o(pipe_rx7_data),
+      .pipe_rx_elec_idle_o(pipe_rx7_elec_idle),
+      .pipe_rx_phy_status_o(pipe_rx7_phy_status),
+      .pipe_rx_polarity_o(pipe_rx7_polarity_gt),
+      .pipe_rx_status_o(pipe_rx7_status),
+      .pipe_rx_valid_o(pipe_rx7_valid),
+      .pipe_tx_char_is_k_o(pipe_tx7_char_is_k_gt),
+      .pipe_tx_compliance_o(pipe_tx7_compliance_gt),
+      .pipe_tx_data_o(pipe_tx7_data_gt),
+      .pipe_tx_elec_idle_o(pipe_tx7_elec_idle_gt),
+      .pipe_tx_powerdown_o(pipe_tx7_powerdown_gt),
+
+      .pipe_clk(pipe_clk),
+      .rst_n(phy_rdy_n)
+
+    );
+
+//end pcie_7x_0_pcie_pipe_pipeline }
 
 //end pcie_7x_0_pcie_top }
 
