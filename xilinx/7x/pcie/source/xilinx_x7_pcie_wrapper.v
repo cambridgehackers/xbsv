@@ -92,6 +92,7 @@ module xilinx_x7_pcie_wrapper #(
  input                                      tx_cfg_gnt,
 
  // Rx
+ output [C_DATA_WIDTH-1:0]                  rx_trn_rd;
  output reg [63:0]                          m_axis_rx_tdata,
  output  [7:0]                              m_axis_rx_tkeep,
  output                                     m_axis_rx_tlast,
@@ -1500,6 +1501,7 @@ generate
   end
 endgenerate
 
+assign rx_trn_rd = trn_rd;
 
 // Create special buffer which locks in the proper value of TDATA depending
 // on whether the user is throttling or not. This buffer has three states:
@@ -2009,7 +2011,7 @@ always @(*) begin
       pkt_len_counter = new_pkt_len;
     end
 
-    // IN_PACKET: a mutli-cycle packet is in progress and we're tracking it. We
+    // IN_PACKET: a multi-cycle packet is in progress and we're tracking it. We
     // are in lock-step with the AXI interface decrementing our packet length
     // tracking reg, and waiting for the packet to finish.
     //

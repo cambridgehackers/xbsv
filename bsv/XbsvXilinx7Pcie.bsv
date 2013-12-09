@@ -92,6 +92,8 @@ endinterface
 
 (* always_ready, always_enabled *)
 interface PCIE_AXI_RX_X7;
+   method    Bit#(64)         trn_rd();
+
    method    Bool             rlast();
    method    Bit#(64)         rdata();
    method    Bit#(8)          rkeep();
@@ -265,6 +267,7 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
    endinterface
    
    interface PCIE_AXI_RX_X7 axi_rx;
+      method rx_trn_rd                  trn_rd                                                              clocked_by(trn_clk)  reset_by(no_reset);
       method m_axis_rx_tlast            rlast                                                               clocked_by(trn_clk)  reset_by(no_reset);
       method m_axis_rx_tdata            rdata                                                               clocked_by(trn_clk)  reset_by(no_reset);
       method m_axis_rx_tkeep            rkeep                                                               clocked_by(trn_clk)  reset_by(no_reset);
@@ -377,7 +380,7 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
       
    schedule (trn_lnk_up, trn_app_rdy, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel, axi_tx_tlast,
 	     axi_tx_tdata, axi_tx_tkeep, axi_tx_tvalid, axi_tx_tready, axi_tx_tuser, axi_tx_tbuf_av, axi_tx_terr_drop,
-	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_rsof, axi_rx_rhit, axi_rx_ruser, axi_rx_rvalid,
+	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_trn_rd, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_rsof, axi_rx_rhit, axi_rx_ruser, axi_rx_rvalid,
 	     axi_rx_rready, axi_rx_rnp_ok, axi_rx_rnp_req, pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
 	     pl_link_gen2_capable, pl_link_partner_gen2_supported, pl_link_upcfg_capable, pl_sel_link_rate, pl_sel_link_width,
 	     pl_ltssm_state, pl_rx_pm_state, pl_tx_pm_state, pl_directed_link_auton, pl_directed_link_change, 
@@ -399,7 +402,7 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
 	     ) CF 
             (trn_lnk_up, trn_app_rdy, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel, axi_tx_tlast,
 	     axi_tx_tdata, axi_tx_tkeep, axi_tx_tvalid, axi_tx_tready, axi_tx_tuser, axi_tx_tbuf_av, axi_tx_terr_drop,
-	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_rsof, axi_rx_rhit, axi_rx_ruser, axi_rx_rvalid,
+	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_trn_rd, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_rsof, axi_rx_rhit, axi_rx_ruser, axi_rx_rvalid,
 	     axi_rx_rready, axi_rx_rnp_ok, axi_rx_rnp_req, pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
 	     pl_link_gen2_capable, pl_link_partner_gen2_supported, pl_link_upcfg_capable, pl_sel_link_rate, pl_sel_link_width,
 	     pl_ltssm_state, pl_rx_pm_state, pl_tx_pm_state, pl_directed_link_auton, pl_directed_link_change, 
