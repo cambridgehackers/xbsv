@@ -32,7 +32,9 @@ import PCIE              ::*;
 ////////////////////////////////////////////////////////////////////////////////
 typedef struct {
    Bit#(5)       eof;
-   Bit#(17)      user;
+   Bit#(2)       sof;
+   Bit#(7)       hit;
+   Bit#(2)       user;
    Bool          last;
    Bit#(8)       keep;
    Bit#(64)      data;
@@ -94,7 +96,9 @@ interface PCIE_AXI_RX_X7;
    method    Bit#(64)         rdata();
    method    Bit#(8)          rkeep();
    method    Bit#(5)          reof();
-   method    Bit#(17)         ruser();
+   method    Bit#(2)          rsof();
+   method    Bit#(7)          rhit();
+   method    Bit#(2)          ruser();
    method    Bool             rvalid();
    method    Action           rready(Bool i);
    method    Action           rnp_ok(Bool i);
@@ -265,6 +269,8 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
       method m_axis_rx_tdata            rdata                                                               clocked_by(trn_clk)  reset_by(no_reset);
       method m_axis_rx_tkeep            rkeep                                                               clocked_by(trn_clk)  reset_by(no_reset);
       method m_axis_rx_teof             reof                                                                clocked_by(trn_clk)  reset_by(no_reset);
+      method m_axis_rx_tsof             rsof                                                                clocked_by(trn_clk)  reset_by(no_reset);
+      method m_axis_rx_thit             rhit                                                                clocked_by(trn_clk)  reset_by(no_reset);
       method m_axis_rx_tuser            ruser                                                               clocked_by(trn_clk)  reset_by(no_reset);
       method m_axis_rx_tvalid           rvalid                                                              clocked_by(trn_clk)  reset_by(no_reset);
       method                            rready(m_axis_rx_tready)                     enable((*inhigh*)en08) clocked_by(trn_clk)  reset_by(no_reset);
@@ -371,7 +377,7 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
       
    schedule (trn_lnk_up, trn_app_rdy, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel, axi_tx_tlast,
 	     axi_tx_tdata, axi_tx_tkeep, axi_tx_tvalid, axi_tx_tready, axi_tx_tuser, axi_tx_tbuf_av, axi_tx_terr_drop,
-	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_ruser, axi_rx_rvalid,
+	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_rsof, axi_rx_rhit, axi_rx_ruser, axi_rx_rvalid,
 	     axi_rx_rready, axi_rx_rnp_ok, axi_rx_rnp_req, pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
 	     pl_link_gen2_capable, pl_link_partner_gen2_supported, pl_link_upcfg_capable, pl_sel_link_rate, pl_sel_link_width,
 	     pl_ltssm_state, pl_rx_pm_state, pl_tx_pm_state, pl_directed_link_auton, pl_directed_link_change, 
@@ -393,7 +399,7 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
 	     ) CF 
             (trn_lnk_up, trn_app_rdy, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel, axi_tx_tlast,
 	     axi_tx_tdata, axi_tx_tkeep, axi_tx_tvalid, axi_tx_tready, axi_tx_tuser, axi_tx_tbuf_av, axi_tx_terr_drop,
-	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_ruser, axi_rx_rvalid,
+	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_rsof, axi_rx_rhit, axi_rx_ruser, axi_rx_rvalid,
 	     axi_rx_rready, axi_rx_rnp_ok, axi_rx_rnp_req, pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
 	     pl_link_gen2_capable, pl_link_partner_gen2_supported, pl_link_upcfg_capable, pl_sel_link_rate, pl_sel_link_width,
 	     pl_ltssm_state, pl_rx_pm_state, pl_tx_pm_state, pl_directed_link_auton, pl_directed_link_change, 
@@ -556,6 +562,8 @@ module mkPCIExpressEndpointX7#(PCIEParams params)(PCIExpressX7#(lanes))
    rule sink_axi_rx if (pcie_ep.axi_rx.rvalid);
       let info = AxiRx {
 	 eof:     pcie_ep.axi_rx.reof,
+	 sof:     pcie_ep.axi_rx.rsof,
+         hit:     pcie_ep.axi_rx.rhit,
 	 user:    pcie_ep.axi_rx.ruser,
 	 last:    pcie_ep.axi_rx.rlast,
 	 keep:    pcie_ep.axi_rx.rkeep,
@@ -595,9 +603,9 @@ module mkPCIExpressEndpointX7#(PCIEParams params)(PCIExpressX7#(lanes))
       method ActionValue#(Tuple3#(Bool, Bool, TLPData#(8))) recv();
 	 let info <- toGet(fAxiRx).get;
 	 TLPData#(8) retval = defaultValue;
-	 retval.sof  = (info.user[14] == 1);
+	 retval.sof  = (info.sof[1] == 1);
 	 retval.eof  = info.last;
-	 retval.hit  = info.user[8:2];
+	 retval.hit  = info.hit;
 	 retval.be   = dwordSwap64BE(info.keep);
 	 retval.data = dwordSwap64(info.data);
 	 return tuple3(info.user[1] == 1, info.user[0] == 1, retval);

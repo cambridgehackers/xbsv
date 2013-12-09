@@ -98,7 +98,9 @@ module xilinx_x7_pcie_wrapper #(
  output reg                                 m_axis_rx_tvalid,
  input                                      m_axis_rx_tready,
  output reg [4:0]                           m_axis_rx_teof,
- output reg [14:0]                          m_axis_rx_tuser,
+ output reg [1:0]                           m_axis_rx_tsof,
+ output reg [6:0]                           m_axis_rx_thit,
+ output reg [1:0]                           m_axis_rx_tuser,
  input                                      rx_np_ok,
  input                                      rx_np_req,
 
@@ -1558,7 +1560,9 @@ always @(posedge user_clk_out) begin
     reg_tlast        <= #TCQ 1'b0;
     reg_tkeep        <= #TCQ {KEEP_WIDTH{1'b1}};
     m_axis_rx_teof   <= #TCQ 5'h0;
-    m_axis_rx_tuser  <= #TCQ 15'h0;
+    m_axis_rx_tsof   <= #TCQ 2'h0;
+    m_axis_rx_thit   <= #TCQ 7'h0;
+    m_axis_rx_tuser  <= #TCQ 2'h0;
   end
   else begin
     if(!data_hold) begin
@@ -1568,7 +1572,9 @@ always @(posedge user_clk_out) begin
         reg_tlast        <= #TCQ null_rx_tlast;
         reg_tkeep        <= #TCQ null_rx_tkeep;
         m_axis_rx_teof   <= #TCQ null_is_eof;
-        m_axis_rx_tuser  <= #TCQ 15'h0000;
+	m_axis_rx_tsof   <= #TCQ 2'h0;
+	m_axis_rx_thit   <= #TCQ 7'h0;
+        m_axis_rx_tuser  <= #TCQ 2'h0;
       end
 
       // PREVIOUS state
@@ -1577,10 +1583,9 @@ always @(posedge user_clk_out) begin
         reg_tlast        <= #TCQ trn_reof_prev;
         reg_tkeep        <= #TCQ tkeep_prev;
 	m_axis_rx_teof   <= #TCQ is_eof_prev;
-        m_axis_rx_tuser  <= #TCQ {is_sof_prev,          // TUSER bits [14:10]
-                                  1'b0,                 // TUSER bit  [9]
-                                  trn_rbar_hit_prev,    // TUSER bits [8:2]
-                                  trn_rerrfwd_prev,     // TUSER bit  [1]
+	m_axis_rx_tsof   <= #TCQ is_sof_prev[4:3];
+	m_axis_rx_thit   <= #TCQ trn_rbar_hit_prev;
+        m_axis_rx_tuser  <= #TCQ {trn_rerrfwd_prev,     // TUSER bit  [1]
                                   trn_recrc_err_prev};  // TUSER bit  [0]
       end
 
@@ -1590,10 +1595,9 @@ always @(posedge user_clk_out) begin
         reg_tlast        <= #TCQ trn_reof;
         reg_tkeep        <= #TCQ tkeep;
         m_axis_rx_teof   <= #TCQ is_eof;
-        m_axis_rx_tuser  <= #TCQ {is_sof,               // TUSER bits [14:10]
-                                  1'b0,                 // TUSER bit  [9]
-                                  trn_rbar_hit[6:0],    // TUSER bits [8:2]
-                                  trn_rerrfwd,          // TUSER bit  [1]
+        m_axis_rx_tsof   <= #TCQ is_sof[4:3];
+        m_axis_rx_thit   <= #TCQ trn_rbar_hit[6:0];
+        m_axis_rx_tuser  <= #TCQ {trn_rerrfwd,          // TUSER bit  [1]
                                   trn_recrc_err};       // TUSER bit  [0]
       end
     end
@@ -1856,7 +1860,7 @@ generate
                          mrd_lk_lower   ||
                          io_rdwr_lower  ||
                          cfg_rdwr_lower ||
-                         atomic_lower) && m_axis_rx_tuser[13];
+                         atomic_lower) && m_axis_rx_tsof[0];
 
     // Look for NP packets beginning on upper (i.e. aligned) start
     wire mrd_upper      = (!(|m_axis_rx_tdata[28:24]) && !m_axis_rx_tdata[30]);
@@ -1869,10 +1873,10 @@ generate
                          mrd_lk_upper   ||
                          io_rdwr_upper  ||
                          cfg_rdwr_upper ||
-                         atomic_upper) && !m_axis_rx_tuser[13];
+                         atomic_upper) && !m_axis_rx_tsof[0];
 
     wire pkt_accepted =
-                    m_axis_rx_tuser[14] && m_axis_rx_tready && m_axis_rx_tvalid;
+                    m_axis_rx_tsof[1] && m_axis_rx_tready && m_axis_rx_tvalid;
 
     // Increment counter whenever an NP packet leaves the RX pipeline
     always @(posedge user_clk_out)  begin
@@ -1947,7 +1951,7 @@ wire                  eof;
 assign eof = m_axis_rx_teof[4];
 generate
   if(C_DATA_WIDTH == 128) begin : sof_eof_128
-    assign straddle_sof = (m_axis_rx_tuser[14:13] == 2'b11);
+    assign straddle_sof = (m_axis_rx_tsof[1:0] == 2'b11);
   end
   else begin : sof_eof_64_32
     assign straddle_sof = 1'b0;
