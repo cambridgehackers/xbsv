@@ -97,7 +97,8 @@ module xilinx_x7_pcie_wrapper #(
  output                                     m_axis_rx_tlast,
  output reg                                 m_axis_rx_tvalid,
  input                                      m_axis_rx_tready,
- output reg [21:0]                          m_axis_rx_tuser,
+ output reg [4:0]                           m_axis_rx_teof,
+ output reg [14:0]                          m_axis_rx_tuser,
  input                                      rx_np_ok,
  input                                      rx_np_req,
 
@@ -1556,7 +1557,8 @@ always @(posedge user_clk_out) begin
     m_axis_rx_tvalid <= #TCQ 1'b0;
     reg_tlast        <= #TCQ 1'b0;
     reg_tkeep        <= #TCQ {KEEP_WIDTH{1'b1}};
-    m_axis_rx_tuser  <= #TCQ 22'h0;
+    m_axis_rx_teof   <= #TCQ 5'h0;
+    m_axis_rx_tuser  <= #TCQ 15'h0;
   end
   else begin
     if(!data_hold) begin
@@ -1565,7 +1567,8 @@ always @(posedge user_clk_out) begin
         m_axis_rx_tvalid <= #TCQ null_rx_tvalid;
         reg_tlast        <= #TCQ null_rx_tlast;
         reg_tkeep        <= #TCQ null_rx_tkeep;
-        m_axis_rx_tuser  <= #TCQ {null_is_eof, 17'h0000};
+        m_axis_rx_teof   <= #TCQ null_is_eof;
+        m_axis_rx_tuser  <= #TCQ 15'h0000;
       end
 
       // PREVIOUS state
@@ -1573,9 +1576,8 @@ always @(posedge user_clk_out) begin
         m_axis_rx_tvalid <= #TCQ (trn_rsrc_rdy_prev || dsc_flag);
         reg_tlast        <= #TCQ trn_reof_prev;
         reg_tkeep        <= #TCQ tkeep_prev;
-        m_axis_rx_tuser  <= #TCQ {is_eof_prev,          // TUSER bits [21:17]
-                                  2'b00,                // TUSER bits [16:15]
-                                  is_sof_prev,          // TUSER bits [14:10]
+	m_axis_rx_teof   <= #TCQ is_eof_prev;
+        m_axis_rx_tuser  <= #TCQ {is_sof_prev,          // TUSER bits [14:10]
                                   1'b0,                 // TUSER bit  [9]
                                   trn_rbar_hit_prev,    // TUSER bits [8:2]
                                   trn_rerrfwd_prev,     // TUSER bit  [1]
@@ -1587,9 +1589,8 @@ always @(posedge user_clk_out) begin
         m_axis_rx_tvalid <= #TCQ (rsrc_rdy_filtered || dsc_flag);
         reg_tlast        <= #TCQ trn_reof;
         reg_tkeep        <= #TCQ tkeep;
-        m_axis_rx_tuser  <= #TCQ {is_eof,               // TUSER bits [21:17]
-                                  2'b00,                // TUSER bits [16:15]
-                                  is_sof,               // TUSER bits [14:10]
+        m_axis_rx_teof   <= #TCQ is_eof;
+        m_axis_rx_tuser  <= #TCQ {is_sof,               // TUSER bits [14:10]
                                   1'b0,                 // TUSER bit  [9]
                                   trn_rbar_hit[6:0],    // TUSER bits [8:2]
                                   trn_rerrfwd,          // TUSER bit  [1]
@@ -1943,7 +1944,7 @@ wire                  eof;
 
 // Create signals to detect sof and eof situations. These signals vary depending
 // on data width.
-assign eof = m_axis_rx_tuser[21];
+assign eof = m_axis_rx_teof[4];
 generate
   if(C_DATA_WIDTH == 128) begin : sof_eof_128
     assign straddle_sof = (m_axis_rx_tuser[14:13] == 2'b11);
