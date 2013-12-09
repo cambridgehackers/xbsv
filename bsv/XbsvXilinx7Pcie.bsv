@@ -31,13 +31,14 @@ import PCIE              ::*;
 /// Types
 ////////////////////////////////////////////////////////////////////////////////
 typedef struct {
-   Bit#(5)       eof;
-   Bit#(2)       sof;
-   Bit#(7)       hit;
-   Bit#(2)       user;
-   Bool          last;
-   Bit#(8)       keep;
    Bit#(64)      data;
+   Bool          sof;
+   Bool          eof;
+   Bit#(8)       hit;
+   Bit#(1)       rrem;
+   Bool          errfwd;
+   Bool          ecrcerr;
+   Bool          disc;
 } AxiRx deriving (Bits, Eq);
 
 typedef struct {
@@ -54,7 +55,7 @@ interface PCIE_X7#(numeric type lanes);
    interface PCIE_EXP#(lanes) pcie;
    interface PCIE_TRN_X7      trn;
    interface PCIE_AXI_TX_X7   axi_tx;
-   interface PCIE_AXI_RX_X7   axi_rx;
+   interface PCIE_RX_X7   rx;
    interface PCIE_PL_X7       pl;
    interface PCIE_CFG_X7      cfg;
    interface PCIE_INT_X7      cfg_interrupt;
@@ -91,16 +92,15 @@ interface PCIE_AXI_TX_X7;
 endinterface
 
 (* always_ready, always_enabled *)
-interface PCIE_AXI_RX_X7;
-   method    Bit#(64)         trn_rd();
-
-   method    Bool             rlast();
+interface PCIE_RX_X7;
    method    Bit#(64)         rdata();
-   method    Bit#(8)          rkeep();
-   method    Bit#(5)          reof();
-   method    Bit#(2)          rsof();
-   method    Bit#(7)          rhit();
-   method    Bit#(2)          ruser();
+   method    Bool             rsof();
+   method    Bool             reof();
+   method    Bit#(8)          rhit();
+   method    Bit#(1)          rrem(); // 2 bits for 128-bit data, 1 bit for 64-bit data
+   method    Bool             disc();
+   method    Bool             errfwd();
+   method    Bool             ecrcerr();
    method    Bool             rvalid();
    method    Action           rready(Bool i);
    method    Action           rnp_ok(Bool i);
@@ -266,17 +266,17 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
       method                            tcfg_gnt(tx_cfg_gnt)                         enable((*inhigh*)en07) clocked_by(trn_clk)  reset_by(no_reset);
    endinterface
    
-   interface PCIE_AXI_RX_X7 axi_rx;
-      method rx_trn_rd                  trn_rd                                                              clocked_by(trn_clk)  reset_by(no_reset);
-      method m_axis_rx_tlast            rlast                                                               clocked_by(trn_clk)  reset_by(no_reset);
-      method m_axis_rx_tdata            rdata                                                               clocked_by(trn_clk)  reset_by(no_reset);
-      method m_axis_rx_tkeep            rkeep                                                               clocked_by(trn_clk)  reset_by(no_reset);
-      method m_axis_rx_teof             reof                                                                clocked_by(trn_clk)  reset_by(no_reset);
-      method m_axis_rx_tsof             rsof                                                                clocked_by(trn_clk)  reset_by(no_reset);
-      method m_axis_rx_thit             rhit                                                                clocked_by(trn_clk)  reset_by(no_reset);
-      method m_axis_rx_tuser            ruser                                                               clocked_by(trn_clk)  reset_by(no_reset);
-      method m_axis_rx_tvalid           rvalid                                                              clocked_by(trn_clk)  reset_by(no_reset);
-      method                            rready(m_axis_rx_tready)                     enable((*inhigh*)en08) clocked_by(trn_clk)  reset_by(no_reset);
+   interface PCIE_RX_X7 rx;
+      method trn_rd                     rdata                                                               clocked_by(trn_clk)  reset_by(no_reset);
+      method trn_rrem                   rrem                                                                clocked_by(trn_clk)  reset_by(no_reset);
+      method trn_reof                   reof                                                                clocked_by(trn_clk)  reset_by(no_reset);
+      method trn_rsof                   rsof                                                                clocked_by(trn_clk)  reset_by(no_reset);
+      method trn_rbar_hit               rhit                                                                clocked_by(trn_clk)  reset_by(no_reset);
+      method trn_rsrc_dsc               disc                                                                clocked_by(trn_clk)  reset_by(no_reset);
+      method trn_rerrfwd                errfwd                                                              clocked_by(trn_clk)  reset_by(no_reset);
+      method trn_recrc_err              ecrcerr                                                             clocked_by(trn_clk)  reset_by(no_reset);
+      method trn_rsrc_rdy               rvalid                                                              clocked_by(trn_clk)  reset_by(no_reset);
+      method                            rready(trn_rdst_rdy)                         enable((*inhigh*)en08) clocked_by(trn_clk)  reset_by(no_reset);
       method                            rnp_ok(rx_np_ok)                             enable((*inhigh*)en09) clocked_by(trn_clk)  reset_by(no_reset);
       method                            rnp_req(rx_np_req)                           enable((*inhigh*)en10) clocked_by(trn_clk)  reset_by(no_reset);
    endinterface
@@ -380,8 +380,7 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
       
    schedule (trn_lnk_up, trn_app_rdy, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel, axi_tx_tlast,
 	     axi_tx_tdata, axi_tx_tkeep, axi_tx_tvalid, axi_tx_tready, axi_tx_tuser, axi_tx_tbuf_av, axi_tx_terr_drop,
-	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_trn_rd, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_rsof, axi_rx_rhit, axi_rx_ruser, axi_rx_rvalid,
-	     axi_rx_rready, axi_rx_rnp_ok, axi_rx_rnp_req, pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
+	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
 	     pl_link_gen2_capable, pl_link_partner_gen2_supported, pl_link_upcfg_capable, pl_sel_link_rate, pl_sel_link_width,
 	     pl_ltssm_state, pl_rx_pm_state, pl_tx_pm_state, pl_directed_link_auton, pl_directed_link_change, 
 	     pl_directed_link_speed, pl_directed_link_width, pl_directed_change_done, pl_upstream_prefer_deemph, 
@@ -398,12 +397,12 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
 	     cfg_err_cor, cfg_err_atomic_egress_blocked, cfg_err_internal_cor, cfg_err_internal_uncor, cfg_err_malformed,
 	     cfg_err_mc_blocked, cfg_err_poisoned, cfg_err_no_recovery, cfg_err_tlp_cpl_header, cfg_err_cpl_rdy, cfg_err_locked,
 	     cfg_err_aer_headerlog, cfg_err_aer_headerlog_set, cfg_err_aer_interrupt_msgnum, cfg_err_acs,
-	     pcie_txp, pcie_txn, pcie_rxp, pcie_rxn
+	     pcie_txp, pcie_txn, pcie_rxp, pcie_rxn,
+	     rx_rready, rx_rnp_ok, rx_rnp_req, rx_rdata, rx_rrem, rx_reof,rx_rsof,rx_rhit,rx_disc,rx_errfwd,rx_ecrcerr,rx_rvalid
 	     ) CF 
             (trn_lnk_up, trn_app_rdy, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel, axi_tx_tlast,
 	     axi_tx_tdata, axi_tx_tkeep, axi_tx_tvalid, axi_tx_tready, axi_tx_tuser, axi_tx_tbuf_av, axi_tx_terr_drop,
-	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, axi_rx_rlast, axi_rx_trn_rd, axi_rx_rdata, axi_rx_rkeep, axi_rx_reof, axi_rx_rsof, axi_rx_rhit, axi_rx_ruser, axi_rx_rvalid,
-	     axi_rx_rready, axi_rx_rnp_ok, axi_rx_rnp_req, pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
+	     axi_tx_tcfg_req, axi_tx_tcfg_gnt, pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
 	     pl_link_gen2_capable, pl_link_partner_gen2_supported, pl_link_upcfg_capable, pl_sel_link_rate, pl_sel_link_width,
 	     pl_ltssm_state, pl_rx_pm_state, pl_tx_pm_state, pl_directed_link_auton, pl_directed_link_change, 
 	     pl_directed_link_speed, pl_directed_link_width, pl_directed_change_done, pl_upstream_prefer_deemph, 
@@ -420,7 +419,8 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
 	     cfg_err_cor, cfg_err_atomic_egress_blocked, cfg_err_internal_cor, cfg_err_internal_uncor, cfg_err_malformed,
 	     cfg_err_mc_blocked, cfg_err_poisoned, cfg_err_no_recovery, cfg_err_tlp_cpl_header, cfg_err_cpl_rdy, cfg_err_locked,
 	     cfg_err_aer_headerlog, cfg_err_aer_headerlog_set, cfg_err_aer_interrupt_msgnum, cfg_err_acs,
-	     pcie_txp, pcie_txn, pcie_rxp, pcie_rxn
+	     pcie_txp, pcie_txn, pcie_rxp, pcie_rxn,
+	     rx_rready, rx_rnp_ok, rx_rnp_req, rx_rdata, rx_rrem, rx_reof,rx_rsof,rx_rhit,rx_disc,rx_errfwd,rx_ecrcerr,rx_rvalid
              );
 
 endmodule: vMkXilinx7PCIExpress
@@ -557,20 +557,21 @@ module mkPCIExpressEndpointX7#(PCIEParams params)(PCIExpressX7#(lanes))
    endrule
    
    (* fire_when_enabled, no_implicit_conditions *)
-   rule drive_axi_rx_ready;
-      pcie_ep.axi_rx.rready(fAxiRx.notFull);
+   rule drive_rx_ready;
+      pcie_ep.rx.rready(fAxiRx.notFull);
    endrule
    
    (* fire_when_enabled *)
-   rule sink_axi_rx if (pcie_ep.axi_rx.rvalid);
+   rule sink_rx if (pcie_ep.rx.rvalid);
       let info = AxiRx {
-	 eof:     pcie_ep.axi_rx.reof,
-	 sof:     pcie_ep.axi_rx.rsof,
-         hit:     pcie_ep.axi_rx.rhit,
-	 user:    pcie_ep.axi_rx.ruser,
-	 last:    pcie_ep.axi_rx.rlast,
-	 keep:    pcie_ep.axi_rx.rkeep,
-	 data:    pcie_ep.axi_rx.rdata
+	 data:    pcie_ep.rx.rdata,
+	 sof:     pcie_ep.rx.rsof,
+	 eof:     pcie_ep.rx.reof,
+         hit:     pcie_ep.rx.rhit,
+	 rrem:    pcie_ep.rx.rrem,
+	 errfwd:  pcie_ep.rx.errfwd,
+	 ecrcerr: pcie_ep.rx.ecrcerr,
+	 disc:    pcie_ep.rx.disc
 	 };
       fAxiRx.enq(info);
    endrule
@@ -605,16 +606,21 @@ module mkPCIExpressEndpointX7#(PCIEParams params)(PCIExpressX7#(lanes))
    interface PCIE_TRN_RECV_X7 trn_rx;
       method ActionValue#(Tuple3#(Bool, Bool, TLPData#(8))) recv();
 	 let info <- toGet(fAxiRx).get;
+         Bit#(8) be = 0;
+	 if (info.rrem == 0)
+	    be = 8'h0f;
+	 else
+	    be = 8'hff;
 	 TLPData#(8) retval = defaultValue;
-	 retval.sof  = (info.sof[1] == 1);
-	 retval.eof  = info.last;
-	 retval.hit  = info.hit;
-	 retval.be   = dwordSwap64BE(info.keep);
-	 retval.data = dwordSwap64(info.data);
-	 return tuple3(info.user[1] == 1, info.user[0] == 1, retval);
+	 retval.sof  = info.sof;
+	 retval.eof  = info.eof;
+	 retval.hit  = info.hit[6:0];
+	 retval.be   = be;
+	 retval.data = info.data;
+	 return tuple3(info.errfwd, info.ecrcerr, retval);
       endmethod
-      method non_posted_ok(i)  = pcie_ep.axi_rx.rnp_ok(i);
-      method non_posted_req(i) = pcie_ep.axi_rx.rnp_req(i);
+      method non_posted_ok(i)  = pcie_ep.rx.rnp_ok(i);
+      method non_posted_req(i) = pcie_ep.rx.rnp_req(i);
    endinterface
       
    interface pl = pcie_ep.pl;
