@@ -435,6 +435,158 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
 endmodule: vMkXilinx7PCIExpress
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Pipe Clock
+////////////////////////////////////////////////////////////////////////////////
+
+(* always_ready, always_enabled *)
+interface Xilinx7PciePipeClock#(numeric type lanes);
+   method Action pclk_sel(Bit#(lanes) i);
+   method Action gen3(Bool i);
+   method Bool   mmcm_lock();
+   interface Clock pclk;
+   interface Clock rxuserclk;
+   interface Clock dclk;
+   interface Clock oobclk;
+   interface Clock userclk1;
+   interface Clock userclk2;
+endinterface
+
+import "BVI" pcie_7x_0_pipe_clock =
+module mkXilinx7PciePipeClock#(Clock clk, Clock txoutclk, Integer user_clk_freq, Integer userclk2_freq)(Xilinx7PciePipeClock#(lanes));
+    parameter PCIE_ASYNC_EN      = "FALSE";                 // PCIe async enable
+    parameter PCIE_TXBUF_EN      = "FALSE";                 // PCIe TX buffer enable for Gen1/Gen2 only
+    parameter PCIE_LANE          = valueOf(lanes);          // PCIe number of lanes
+    parameter PCIE_LINK_SPEED    = 3;                       // PCIe link speed 
+    parameter PCIE_REFCLK_FREQ   = 0;                       // PCIe reference clock frequency
+    parameter PCIE_USERCLK1_FREQ = user_clk_freq + 1;       // PCIe user clock 1 frequency
+    parameter PCIE_USERCLK2_FREQ = userclk2_freq + 1;       // PCIe user clock 2 frequency
+    parameter PCIE_OOBCLK_MODE   = 1;                       // PCIe oob clock mode
+   
+   default_clock clk(CLK_CLK);
+   input_clock txoutclk(CLK_TXOUTCLK) = txoutclk;
+   default_reset rst(CLK_RST_N);
+   
+   method pclk_sel(CLK_PCLK_SEL) enable((*inhigh*)en0) reset_by(no_reset);
+   method gen3(CLK_GEN3)        enable((*inhigh*)en1) reset_by(no_reset);
+
+   output_clock pclk(CLK_PCLK);
+   output_clock rxuserclk(CLK_RXUSRCLK);
+   output_clock dclk(CLK_DCLK);
+   output_clock oobclk(CLK_OOBCLK);
+   output_clock userclk1 (CLK_USERCLK1);
+   output_clock userclk2(CLK_USERCLK2);
+   method CLK_MMCM_LOCK mmcm_lock() reset_by(no_reset);
+   schedule (pclk_sel, gen3, mmcm_lock) CF (pclk_sel, gen3, mmcm_lock);
+
+endmodule
+
+////////////////////////////////////////////////////////////////////////////////
+/// Gt Top
+////////////////////////////////////////////////////////////////////////////////
+
+interface PCIE_GT_X7_CLOCK#(numeric type lanes);
+   interface Clock    pipe_txoutclk_out;
+   method Action      pipe_mmcm_lock_in(Bool in);
+   method Bit#(lanes) pipe_pclk_sel_out();
+   method Bool        pipe_gen3_out();
+endinterface
+
+interface PCIE_GT_X7#(numeric type lanes);
+   interface PCIE_EXP#(lanes) pcie;
+   interface PCIE_GT_X7_CLOCK#(lanes) clocks;
+endinterface   
+
+typedef struct {
+		Clock pipe_pclk_in;
+		Clock pipe_rxuserclk_in;
+		Clock pipe_dclk_in;
+		Clock pipe_userclk1_in;
+		Clock pipe_userclk2_in;
+		Clock pipe_oobclk_in;
+   } Xilinx7GtClocks;
+
+import "BVI" pcie_7x_0_gt_top =
+module vMkXilinx7GtTop#(Xilinx7GtClocks clocks)(PCIE_GT_X7#(lanes))
+   provisos( Add#(1, z, lanes));
+
+   parameter               LINK_CAP_MAX_LINK_WIDTH = 8; // 1 - x1 , 2 - x2 , 4 - x4 , 8 - x8
+   parameter               REF_CLK_FREQ = 0;            // 0 - 100 MHz , 1 - 125 MHz , 2 - 250 MHz
+   parameter               USER_CLK2_DIV2 = "FALSE";    // "FALSE" => user_clk2 = user_clk
+                                                        // "TRUE" => user_clk2 = user_clk/2, where user_clk = 500 or 250 MHz.
+   parameter  integer      USER_CLK_FREQ = 3;           // 0 - 31.25 MHz , 1 - 62.5 MHz , 2 - 125 MHz , 3 - 250 MHz , 4 - 500Mhz
+   parameter               PL_FAST_TRAIN = "FALSE";     // Simulation Speedup
+   parameter               PCIE_EXT_CLK  = "TRUE";      // Use External Clocking
+   parameter               PCIE_USE_MODE = "3.0";       // 1.0 = K325T IES, 1.1 = VX485T IES, 3.0 = K325T GES
+   parameter               PCIE_GT_DEVICE = "GTX";      // Select the GT to use (GTP for Artix-7, GTX for K7/V7)
+   parameter               PCIE_PLL_SEL   = "CPLL";     // Select the PLL (CPLL or QPLL)
+   parameter               PCIE_ASYNC_EN  = "FALSE";    // Asynchronous Clocking Enable
+   parameter               PCIE_TXBUF_EN  = "FALSE";    // Use the Tansmit Buffer
+   parameter               PCIE_CHAN_BOND = 0;
+
+
+   // //-----------------------------------------------------------------------------------------------------------------//
+   // // pl ltssm
+   // input   wire [5:0]                pl_ltssm_state         ,
+   // // Pipe Per-Link Signals
+   // input   wire                      pipe_tx_rcvr_det       ,
+   // input   wire                      pipe_tx_reset          ,
+   // input   wire                      pipe_tx_rate           ,
+   // input   wire                      pipe_tx_deemph         ,
+   // input   wire [2:0]                pipe_tx_margin         ,
+   // input   wire                      pipe_tx_swing          ,
+
+   //-----------------------------------------------------------------------------------------------------------------//
+   // Clock Inputs                                                                                                    //
+   //-----------------------------------------------------------------------------------------------------------------//
+   input_clock pipe_pclk_in(PIPE_PCLK_IN) = clocks.pipe_pclk_in;
+   input_clock  pipe_rxuserclk_in(PIPE_RXUSERCLK_IN) = clocks.pipe_rxuserclk_in;
+   input_clock pipe_dclk_in(PIPE_DCLK_IN) = clocks.pipe_dclk_in;
+   input_clock pipe_userclk1_in(PIPE_USERCLK1_IN) = clocks.pipe_userclk1_in;
+   input_clock pipe_userclk2_in(PIPE_USERCLK2_IN) = clocks.pipe_userclk2_in;
+   input_clock pipe_oobclk_in(PIPE_OOBCLK_IN) = clocks.pipe_oobclk_in;
+
+   interface PCIE_GT_X7_CLOCK#(lanes) clocks;
+      method pipe_mmcm_lock_in(PIPE_MMCM_LOCK_IN);
+
+      output_clock pipe_txoutclk_out(PIPE_TXOUTCLK_OUT);
+      method PIPE_PCLK_SEL_OUT pipe_pclk_sel_out;
+      method PIPE_GEN3_OUT pipe_gen3_out;
+   endinterface
+
+   // // Pipe Per-Lane Signals - Lane 0
+   // output  wire [ 1:0]               pipe_rx0_char_is_k     ,
+   // output  wire [15:0]               pipe_rx0_data          ,
+   // output  wire                      pipe_rx0_valid         ,
+   // output  wire                      pipe_rx0_chanisaligned ,
+   // output  wire [ 2:0]               pipe_rx0_status        ,
+   // output  wire                      pipe_rx0_phy_status    ,
+   // output  wire                      pipe_rx0_elec_idle     ,
+   // input   wire                      pipe_rx0_polarity      ,
+   // input   wire                      pipe_tx0_compliance    ,
+   // input   wire [ 1:0]               pipe_tx0_char_is_k     ,
+   // input   wire [15:0]               pipe_tx0_data          ,
+   // input   wire                      pipe_tx0_elec_idle     ,
+   // input   wire [ 1:0]               pipe_tx0_powerdown     ,
+
+
+
+   // PCI Express signals
+   // output  wire [ (LINK_CAP_MAX_LINK_WIDTH-1):0] pci_exp_txn            ,
+   // output  wire [ (LINK_CAP_MAX_LINK_WIDTH-1):0] pci_exp_txp            ,
+   // input   wire [ (LINK_CAP_MAX_LINK_WIDTH-1):0] pci_exp_rxn            ,
+   // input   wire [ (LINK_CAP_MAX_LINK_WIDTH-1):0] pci_exp_rxp            ,
+
+   // Non PIPE signals
+   // input   wire                      sys_clk                ,
+   // input   wire                      sys_rst_n              ,
+   // input   wire                      PIPE_MMCM_RST_N        ,
+   // output  wire                      pipe_clk               ,
+
+   // output  wire                      phy_rdy_n
+
+endmodule
+
+////////////////////////////////////////////////////////////////////////////////
 /// Interfaces
 ////////////////////////////////////////////////////////////////////////////////
 interface PCIE_TRN_COMMON_X7;
@@ -511,6 +663,9 @@ module mkPCIExpressEndpointX7#(PCIEParams params)(PCIExpressX7#(lanes))
    ////////////////////////////////////////////////////////////////////////////////
    /// Design Elements
    ////////////////////////////////////////////////////////////////////////////////
+   let clk <- exposeCurrentClock;
+
+   Xilinx7PciePipeClock#(8)                  pcie_pipe_clock     <- mkXilinx7PciePipeClock(clk, clk, 3, 3);
    PCIE_X7#(lanes)                           pcie_ep             <- selectXilinx7PCIE(params);
 
    Clock                                     user_clk             = pcie_ep.trn.clk;
