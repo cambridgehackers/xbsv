@@ -269,14 +269,12 @@ module xilinx_x7_pcie_wrapper #(
    // Wires used for external clocking connectivity
    wire                pipe_pclk_in;
    wire                pipe_rxusrclk_in;
-   wire [7:0]          pipe_rxoutclk_in;
    wire                pipe_dclk_in;
    wire                pipe_userclk1_in;
    wire                pipe_userclk2_in;
    wire                pipe_mmcm_lock_in;
    
    wire                pipe_txoutclk_out;
-   wire [7:0]          pipe_rxoutclk_out;
    wire [7:0]          pipe_pclk_sel_out;
    wire                pipe_gen3_out;
    wire                pipe_oobclk_in;
@@ -303,7 +301,7 @@ module xilinx_x7_pcie_wrapper #(
             //---------- Input -------------------------------------
             .CLK_CLK                        ( sys_clk ),
             .CLK_TXOUTCLK                   ( pipe_txoutclk_out ),     // Reference clock from lane 0
-            .CLK_RXOUTCLK_IN                ( pipe_rxoutclk_out ),
+            .CLK_RXOUTCLK_IN                (                   ),     // only used for debug
             .CLK_RST_N                      ( pipe_clk_rst_n ),
             .CLK_PCLK_SEL                   ( pipe_pclk_sel_out ),
             .CLK_GEN3                       ( pipe_gen3_out ),
@@ -311,9 +309,9 @@ module xilinx_x7_pcie_wrapper #(
             //---------- Output ------------------------------------
             .CLK_PCLK                       ( pipe_pclk_in ),
             .CLK_RXUSRCLK                   ( pipe_rxusrclk_in ),
-            .CLK_RXOUTCLK_OUT               ( pipe_rxoutclk_in ),
-            .CLK_DCLK                       ( pipe_dclk_in ),
-            .CLK_OOBCLK                     ( pipe_oobclk_in ),
+            .CLK_RXOUTCLK_OUT               (                  ), // only used for debug
+            .CLK_DCLK                       ( pipe_dclk_in     ),
+            .CLK_OOBCLK                     ( pipe_oobclk_in   ),
             .CLK_USERCLK1                   ( pipe_userclk1_in ),
             .CLK_USERCLK2                   ( pipe_userclk2_in ),
             .CLK_MMCM_LOCK                  ( pipe_mmcm_lock_in )
@@ -2768,7 +2766,7 @@ pcie_7x_0_gt_top #(
 
     .PIPE_PCLK_IN                  ( pipe_pclk_in ),
     .PIPE_RXUSRCLK_IN              ( pipe_rxusrclk_in ),
-    .PIPE_RXOUTCLK_IN              ( pipe_rxoutclk_in ),
+    .PIPE_RXOUTCLK_IN              (                     ), // only used for debug
     .PIPE_DCLK_IN                  ( pipe_dclk_in ),
     .PIPE_USERCLK1_IN              (                     ), // not used with PCIE_EXT_CLK = TRUE
     .PIPE_USERCLK2_IN              (                     ), // not used with PCIE_EXT_CLK = TRUE
@@ -2776,7 +2774,7 @@ pcie_7x_0_gt_top #(
     .PIPE_MMCM_LOCK_IN             ( mmcm_lock_int ),
 
     .PIPE_TXOUTCLK_OUT             ( pipe_txoutclk_out ),
-    .PIPE_RXOUTCLK_OUT             ( pipe_rxoutclk_out ),
+    .PIPE_RXOUTCLK_OUT             (                   ), // only used for debug
     .PIPE_PCLK_SEL_OUT             ( pipe_pclk_sel_out ),
     .PIPE_GEN3_OUT                 ( pipe_gen3_out )
   );
