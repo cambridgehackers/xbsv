@@ -196,7 +196,7 @@ endgroup
 create_clock -name pci_refclk -period 10 [get_pins x7pcie_pci_clk_100mhz_buf/O]
 create_clock -name sys_clk -period 5 [get_pins x7pcie_sys_clk_200mhz/O]
 
-create_clock -name pci_extclk -period 10 [get_pins x7pcie_pcie_ep/gt_top_i/PIPE_TXOUTCLK_OUT]
+create_clock -name pci_extclk -period 10 [get_pins x7pcie_pipe_clock/PIPE_TXOUTCLK_OUT]
 
 # # False Paths
 # set_false_path -from [get_ports { RST_N_pci_sys_reset_n }]

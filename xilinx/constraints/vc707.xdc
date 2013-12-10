@@ -163,7 +163,7 @@ set_property LOC RAMB36_X14Y19 [get_cells {*/pcie_top_i/pcie_7x_i/pcie_bram_top/
 ######################################################################################################
 
 create_clock -name pci_refclk -period 10 [get_pins x7pcie_pci_clk_100mhz_buf/O]
-create_clock -name pci_extclk -period 10 [get_pins x7pcie_pcie_ep/gt_top_i/PIPE_TXOUTCLK_OUT]
+create_clock -name pci_extclk -period 10 [get_pins x7pcie_pipe_clock/PIPE_TXOUTCLK_OUT]
 
 
 #set_false_path -through [get_nets {*/gt_top_i/pipe_wrapper_i/user_resetdone*}]

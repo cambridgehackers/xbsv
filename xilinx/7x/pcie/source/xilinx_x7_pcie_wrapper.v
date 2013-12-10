@@ -53,19 +53,130 @@ module xilinx_x7_pcie_wrapper #(
 // xbsv
                                 )
 (
- 
  //----------------------------------------------------------------------------------------------------------------//
- // 1. PCI Express (pci_exp) Interface                                                                             //
+ // 1. GTX Interface
  //----------------------------------------------------------------------------------------------------------------//
- 
- // Tx
- output [7:0]                                pci_exp_txn,
- output [7:0]                                pci_exp_txp,
 
- // Rx
- input  [7:0]                                pci_exp_rxn,
- input  [7:0]                                pci_exp_rxp,
- 
+   // Pipe Per-Lane Signals - Lane 0
+   input   wire [ 1:0]               pipe_rx0_char_is_k     ,
+   input   wire [15:0]               pipe_rx0_data          ,
+   input   wire                      pipe_rx0_valid         ,
+   input   wire                      pipe_rx0_chanisaligned ,
+   input   wire [ 2:0]               pipe_rx0_status        ,
+   input   wire                      pipe_rx0_phy_status    ,
+   input   wire                      pipe_rx0_elec_idle     ,
+   output  wire                      pipe_rx0_polarity      ,
+   output  wire                      pipe_tx0_compliance    ,
+   output  wire [ 1:0]               pipe_tx0_char_is_k     ,
+   output  wire [15:0]               pipe_tx0_data          ,
+   output  wire                      pipe_tx0_elec_idle     ,
+   output  wire [ 1:0]               pipe_tx0_powerdown     ,
+
+   // Pipe Per-Lane Signals - Lane 1
+   input   wire [ 1:0]               pipe_rx1_char_is_k     ,
+   input   wire [15:0]               pipe_rx1_data          ,
+   input   wire                      pipe_rx1_valid         ,
+   input   wire                      pipe_rx1_chanisaligned ,
+   input   wire [ 2:0]               pipe_rx1_status        ,
+   input   wire                      pipe_rx1_phy_status    ,
+   input   wire                      pipe_rx1_elec_idle     ,
+   output  wire                      pipe_rx1_polarity      ,
+   output  wire                      pipe_tx1_compliance    ,
+   output  wire [ 1:0]               pipe_tx1_char_is_k     ,
+   output  wire [15:0]               pipe_tx1_data          ,
+   output  wire                      pipe_tx1_elec_idle     ,
+   output  wire [ 1:0]               pipe_tx1_powerdown     ,
+
+   // Pipe Per-Lane Signals - Lane 2
+   input   wire [ 1:0]               pipe_rx2_char_is_k     ,
+   input   wire [15:0]               pipe_rx2_data          ,
+   input   wire                      pipe_rx2_valid         ,
+   input   wire                      pipe_rx2_chanisaligned ,
+   input   wire [ 2:0]               pipe_rx2_status        ,
+   input   wire                      pipe_rx2_phy_status    ,
+   input   wire                      pipe_rx2_elec_idle     ,
+   output  wire                      pipe_rx2_polarity      ,
+   output  wire                      pipe_tx2_compliance    ,
+   output  wire [ 1:0]               pipe_tx2_char_is_k     ,
+   output  wire [15:0]               pipe_tx2_data          ,
+   output  wire                      pipe_tx2_elec_idle     ,
+   output  wire [ 1:0]               pipe_tx2_powerdown     ,
+
+   // Pipe Per-Lane Signals - Lane 3
+   input   wire [ 1:0]               pipe_rx3_char_is_k     ,
+   input   wire [15:0]               pipe_rx3_data          ,
+   input   wire                      pipe_rx3_valid         ,
+   input   wire                      pipe_rx3_chanisaligned ,
+   input   wire [ 2:0]               pipe_rx3_status        ,
+   input   wire                      pipe_rx3_phy_status    ,
+   input   wire                      pipe_rx3_elec_idle     ,
+   output  wire                      pipe_rx3_polarity      ,
+   output  wire                      pipe_tx3_compliance    ,
+   output  wire [ 1:0]               pipe_tx3_char_is_k     ,
+   output  wire [15:0]               pipe_tx3_data          ,
+   output  wire                      pipe_tx3_elec_idle     ,
+   output  wire [ 1:0]               pipe_tx3_powerdown     ,
+
+   // Pipe Per-Lane Signals - Lane 4
+   input   wire [ 1:0]               pipe_rx4_char_is_k     ,
+   input   wire [15:0]               pipe_rx4_data          ,
+   input   wire                      pipe_rx4_valid         ,
+   input   wire                      pipe_rx4_chanisaligned ,
+   input   wire [ 2:0]               pipe_rx4_status        ,
+   input   wire                      pipe_rx4_phy_status    ,
+   input   wire                      pipe_rx4_elec_idle     ,
+   output  wire                      pipe_rx4_polarity      ,
+   output  wire                      pipe_tx4_compliance    ,
+   output  wire [ 1:0]               pipe_tx4_char_is_k     ,
+   output  wire [15:0]               pipe_tx4_data          ,
+   output  wire                      pipe_tx4_elec_idle     ,
+   output  wire [ 1:0]               pipe_tx4_powerdown     ,
+
+   // Pipe Per-Lane Signals - Lane 5
+   input   wire [ 1:0]               pipe_rx5_char_is_k     ,
+   input   wire [15:0]               pipe_rx5_data          ,
+   input   wire                      pipe_rx5_valid         ,
+   input   wire                      pipe_rx5_chanisaligned ,
+   input   wire [ 2:0]               pipe_rx5_status        ,
+   input   wire                      pipe_rx5_phy_status    ,
+   input   wire                      pipe_rx5_elec_idle     ,
+   output  wire                      pipe_rx5_polarity      ,
+   output  wire                      pipe_tx5_compliance    ,
+   output  wire [ 1:0]               pipe_tx5_char_is_k     ,
+   output  wire [15:0]               pipe_tx5_data          ,
+   output  wire                      pipe_tx5_elec_idle     ,
+   output  wire [ 1:0]               pipe_tx5_powerdown     ,
+
+   // Pipe Per-Lane Signals - Lane 6
+   input   wire [ 1:0]               pipe_rx6_char_is_k     ,
+   input   wire [15:0]               pipe_rx6_data          ,
+   input   wire                      pipe_rx6_valid         ,
+   input   wire                      pipe_rx6_chanisaligned ,
+   input   wire [ 2:0]               pipe_rx6_status        ,
+   input   wire                      pipe_rx6_phy_status    ,
+   input   wire                      pipe_rx6_elec_idle     ,
+   output  wire                      pipe_rx6_polarity      ,
+   output  wire                      pipe_tx6_compliance    ,
+   output  wire [ 1:0]               pipe_tx6_char_is_k     ,
+   output  wire [15:0]               pipe_tx6_data          ,
+   output  wire                      pipe_tx6_elec_idle     ,
+   output  wire [ 1:0]               pipe_tx6_powerdown     ,
+
+   // Pipe Per-Lane Signals - Lane 7
+   input   wire [ 1:0]               pipe_rx7_char_is_k     ,
+   input   wire [15:0]               pipe_rx7_data          ,
+   input   wire                      pipe_rx7_valid         ,
+   input   wire                      pipe_rx7_chanisaligned ,
+   input   wire [ 2:0]               pipe_rx7_status        ,
+   input   wire                      pipe_rx7_phy_status    ,
+   input   wire                      pipe_rx7_elec_idle     ,
+   output  wire                      pipe_rx7_polarity      ,
+   output  wire                      pipe_tx7_compliance    ,
+   output  wire [ 1:0]               pipe_tx7_char_is_k     ,
+   output  wire [15:0]               pipe_tx7_data          ,
+   output  wire                      pipe_tx7_elec_idle     ,
+   output  wire [ 1:0]               pipe_tx7_powerdown     ,
+
  //----------------------------------------------------------------------------------------------------------------//
  // 2. Clock Inputs                                                                                                //
  //----------------------------------------------------------------------------------------------------------------//
@@ -219,6 +330,8 @@ module xilinx_x7_pcie_wrapper #(
  
  
  
+ input wire           phy_rdy_n,
+
  output wire          pl_sel_lnk_rate,
  output wire  [1:0]   pl_sel_lnk_width,
  output wire  [5:0]   pl_ltssm_state,
@@ -260,65 +373,35 @@ module xilinx_x7_pcie_wrapper #(
  // 8. System(SYS) Interface                                                                                       //
  //----------------------------------------------------------------------------------------------------------------//
  
- 
- 
  input wire           sys_clk,
- input wire           sys_reset_n
+ input wire           sys_reset_n,
+
+ 
+ //----------------------------------------------------------------------------------------------------------------//
+ // 9. Clocks
+ //----------------------------------------------------------------------------------------------------------------//
+ input wire            pipe_userclk1_in,
+ input wire            pipe_userclk2_in,
+ input wire            pipe_clk,
+
+ //----------------------------------------------------------------------------------------------------------------//
+ // 10. Pipe signals
+ //----------------------------------------------------------------------------------------------------------------//
+   // Pipe Per-Link Signals
+   output wire                      pipe_tx_rcvr_det       ,
+   output wire                      pipe_tx_reset          ,
+   output wire                      pipe_tx_rate           ,
+   output wire                      pipe_tx_deemph         ,
+   output wire [2:0]                pipe_tx_margin         ,
+   output wire                      pipe_tx_swing
+
  );
    
    // Wires used for external clocking connectivity
-   wire                pipe_pclk_in;
-   wire                pipe_rxusrclk_in;
-   wire                pipe_dclk_in;
-   wire                pipe_userclk1_in;
-   wire                pipe_userclk2_in;
-   wire                pipe_mmcm_lock_in;
-   
-   wire                pipe_txoutclk_out;
-   wire [7:0]          pipe_pclk_sel_out;
-   wire                pipe_gen3_out;
-   wire                pipe_oobclk_in;
 
    localparam USERCLK2_FREQ = (USER_CLK2_DIV2 == "TRUE") ? (USER_CLK_FREQ == 4) ? 3 : (USER_CLK_FREQ == 3) ? 2 : USER_CLK_FREQ
                                                                                     : USER_CLK_FREQ;
    wire pipe_clk_rst_n = 1'b1 ;
-   
-   generate
-      if (PCIE_EXT_CLK == "TRUE") begin: ext_clk
-         pcie_7x_0_pipe_clock #(
-                                   .PCIE_ASYNC_EN                  ( "FALSE" ),     // PCIe async enable
-                                   .PCIE_TXBUF_EN                  ( "FALSE" ),     // PCIe TX buffer enable for Gen1/Gen2 only
-                                   .PCIE_LANE                      ( 6'h08 ),     // PCIe number of lanes
-                                   .PCIE_LINK_SPEED                ( 3 ),
-                                   .PCIE_REFCLK_FREQ               ( 0 ),     // PCIe reference clock frequency
-                                   .PCIE_USERCLK1_FREQ             ( USER_CLK_FREQ +1 ),     // PCIe user clock 1 frequency
-                                   .PCIE_USERCLK2_FREQ             ( USERCLK2_FREQ +1 ),     // PCIe user clock 2 frequency
-                                   .PCIE_DEBUG_MODE                ( 0 )
-                                   )
-         pipe_clock_i
-           (
-            
-            //---------- Input -------------------------------------
-            .CLK_CLK                        ( sys_clk ),
-            .CLK_TXOUTCLK                   ( pipe_txoutclk_out ),     // Reference clock from lane 0
-            .CLK_RXOUTCLK_IN                (                   ),     // only used for debug
-            .CLK_RST_N                      ( pipe_clk_rst_n ),
-            .CLK_PCLK_SEL                   ( pipe_pclk_sel_out ),
-            .CLK_GEN3                       ( pipe_gen3_out ),
-            
-            //---------- Output ------------------------------------
-            .CLK_PCLK                       ( pipe_pclk_in ),
-            .CLK_RXUSRCLK                   ( pipe_rxusrclk_in ),
-            .CLK_RXOUTCLK_OUT               (                  ), // only used for debug
-            .CLK_DCLK                       ( pipe_dclk_in     ),
-            .CLK_OOBCLK                     ( pipe_oobclk_in   ),
-            .CLK_USERCLK1                   ( pipe_userclk1_in ),
-            .CLK_USERCLK2                   ( pipe_userclk2_in ),
-            .CLK_MMCM_LOCK                  ( pipe_mmcm_lock_in )
-            
-            );
-      end
-   endgenerate
    
    
 //begin pcie_7x_v2_1_core_top {
@@ -716,7 +799,6 @@ module xilinx_x7_pcie_wrapper #(
    wire pl_downstream_deemph_source = 1'b0 ;
 
    wire sys_rst_n = sys_reset_n ;
-   wire pipe_clk;
 
 
    wire                user_clk     = pipe_userclk1_in;
@@ -730,117 +812,6 @@ module xilinx_x7_pcie_wrapper #(
   wire [15:0]          cfg_subsys_id      = CFG_SUBSYS_ID;
 
   // PIPE Interface Wires
-  wire                 phy_rdy_n;
-  wire                 pipe_rx0_polarity_gt;
-  wire                 pipe_rx1_polarity_gt;
-  wire                 pipe_rx2_polarity_gt;
-  wire                 pipe_rx3_polarity_gt;
-  wire                 pipe_rx4_polarity_gt;
-  wire                 pipe_rx5_polarity_gt;
-  wire                 pipe_rx6_polarity_gt;
-  wire                 pipe_rx7_polarity_gt;
-  wire                 pipe_tx_deemph_gt;
-  wire [2:0]           pipe_tx_margin_gt;
-  wire                 pipe_tx_rate_gt;
-  wire                 pipe_tx_rcvr_det_gt;
-  wire [1:0]           pipe_tx0_char_is_k_gt;
-  wire                 pipe_tx0_compliance_gt;
-  wire [15:0]          pipe_tx0_data_gt;
-  wire                 pipe_tx0_elec_idle_gt;
-  wire [1:0]           pipe_tx0_powerdown_gt;
-  wire [1:0]           pipe_tx1_char_is_k_gt;
-  wire                 pipe_tx1_compliance_gt;
-  wire [15:0]          pipe_tx1_data_gt;
-  wire                 pipe_tx1_elec_idle_gt;
-  wire [1:0]           pipe_tx1_powerdown_gt;
-  wire [1:0]           pipe_tx2_char_is_k_gt;
-  wire                 pipe_tx2_compliance_gt;
-  wire [15:0]          pipe_tx2_data_gt;
-  wire                 pipe_tx2_elec_idle_gt;
-  wire [1:0]           pipe_tx2_powerdown_gt;
-  wire [1:0]           pipe_tx3_char_is_k_gt;
-  wire                 pipe_tx3_compliance_gt;
-  wire [15:0]          pipe_tx3_data_gt;
-  wire                 pipe_tx3_elec_idle_gt;
-  wire [1:0]           pipe_tx3_powerdown_gt;
-  wire [1:0]           pipe_tx4_char_is_k_gt;
-  wire                 pipe_tx4_compliance_gt;
-  wire [15:0]          pipe_tx4_data_gt;
-  wire                 pipe_tx4_elec_idle_gt;
-  wire [1:0]           pipe_tx4_powerdown_gt;
-  wire [1:0]           pipe_tx5_char_is_k_gt;
-  wire                 pipe_tx5_compliance_gt;
-  wire [15:0]          pipe_tx5_data_gt;
-  wire                 pipe_tx5_elec_idle_gt;
-  wire [1:0]           pipe_tx5_powerdown_gt;
-  wire [1:0]           pipe_tx6_char_is_k_gt;
-  wire                 pipe_tx6_compliance_gt;
-  wire [15:0]          pipe_tx6_data_gt;
-  wire                 pipe_tx6_elec_idle_gt;
-  wire [1:0]           pipe_tx6_powerdown_gt;
-  wire [1:0]           pipe_tx7_char_is_k_gt;
-  wire                 pipe_tx7_compliance_gt;
-  wire [15:0]          pipe_tx7_data_gt;
-  wire                 pipe_tx7_elec_idle_gt;
-  wire [1:0]           pipe_tx7_powerdown_gt;
-
-  wire                 pipe_rx0_chanisaligned_gt;
-  wire  [1:0]          pipe_rx0_char_is_k_gt;
-  wire  [15:0]         pipe_rx0_data_gt;
-  wire                 pipe_rx0_elec_idle_gt;
-  wire                 pipe_rx0_phy_status_gt;
-  wire  [2:0]          pipe_rx0_status_gt;
-  wire                 pipe_rx0_valid_gt;
-  wire                 pipe_rx1_chanisaligned_gt;
-  wire  [1:0]          pipe_rx1_char_is_k_gt;
-  wire  [15:0]         pipe_rx1_data_gt;
-  wire                 pipe_rx1_elec_idle_gt;
-  wire                 pipe_rx1_phy_status_gt;
-  wire  [2:0]          pipe_rx1_status_gt;
-  wire                 pipe_rx1_valid_gt;
-  wire                 pipe_rx2_chanisaligned_gt;
-  wire  [1:0]          pipe_rx2_char_is_k_gt;
-  wire  [15:0]         pipe_rx2_data_gt;
-  wire                 pipe_rx2_elec_idle_gt;
-  wire                 pipe_rx2_phy_status_gt;
-  wire  [2:0]          pipe_rx2_status_gt;
-  wire                 pipe_rx2_valid_gt;
-  wire                 pipe_rx3_chanisaligned_gt;
-  wire  [1:0]          pipe_rx3_char_is_k_gt;
-  wire  [15:0]         pipe_rx3_data_gt;
-  wire                 pipe_rx3_elec_idle_gt;
-  wire                 pipe_rx3_phy_status_gt;
-  wire  [2:0]          pipe_rx3_status_gt;
-  wire                 pipe_rx3_valid_gt;
-  wire                 pipe_rx4_chanisaligned_gt;
-  wire  [1:0]          pipe_rx4_char_is_k_gt;
-  wire  [15:0]         pipe_rx4_data_gt;
-  wire                 pipe_rx4_elec_idle_gt;
-  wire                 pipe_rx4_phy_status_gt;
-  wire  [2:0]          pipe_rx4_status_gt;
-  wire                 pipe_rx4_valid_gt;
-  wire                 pipe_rx5_chanisaligned_gt;
-  wire  [1:0]          pipe_rx5_char_is_k_gt;
-  wire  [15:0]         pipe_rx5_data_gt;
-  wire                 pipe_rx5_elec_idle_gt;
-  wire                 pipe_rx5_phy_status_gt;
-  wire  [2:0]          pipe_rx5_status_gt;
-  wire                 pipe_rx5_valid_gt;
-  wire                 pipe_rx6_chanisaligned_gt;
-  wire  [1:0]          pipe_rx6_char_is_k_gt;
-  wire  [15:0]         pipe_rx6_data_gt;
-  wire                 pipe_rx6_elec_idle_gt;
-  wire                 pipe_rx6_phy_status_gt;
-  wire  [2:0]          pipe_rx6_status_gt;
-  wire                 pipe_rx6_valid_gt;
-  wire                 pipe_rx7_chanisaligned_gt;
-  wire  [1:0]          pipe_rx7_char_is_k_gt;
-  wire  [15:0]         pipe_rx7_data_gt;
-  wire                 pipe_rx7_elec_idle_gt;
-  wire                 pipe_rx7_phy_status_gt;
-  wire  [2:0]          pipe_rx7_status_gt;
-  wire                 pipe_rx7_valid_gt;
-
   reg                  user_lnk_up_int;
   reg                  user_reset_int;
 
@@ -857,7 +828,6 @@ module xilinx_x7_pcie_wrapper #(
   wire [5:0]           pl_ltssm_state_int;
   wire                 user_app_rdy_req;
   wire                 sys_rst_n_int    = sys_rst_n;
-  wire                 mmcm_lock_int    = pipe_mmcm_lock_in;
   reg                  user_lnk_up_mux;
 
   localparam        TCQ = 100;
@@ -1086,121 +1056,14 @@ module xilinx_x7_pcie_wrapper #(
    wire        drp_en                                     = 1'b0;
    wire [15:0] drp_di                              = 16'b0;
    wire        drp_we                                     = 1'b0;
-   wire        pipe_mmcm_rst_n                            = 1'b1;
    //wire declaration
 
   wire                 sys_reset_n_d;
-  wire [1:0]           pipe_rx0_char_is_k;
-  wire [1:0]           pipe_rx1_char_is_k;
-  wire [1:0]           pipe_rx2_char_is_k;
-  wire [1:0]           pipe_rx3_char_is_k;
-  wire [1:0]           pipe_rx4_char_is_k;
-  wire [1:0]           pipe_rx5_char_is_k;
-  wire [1:0]           pipe_rx6_char_is_k;
-  wire [1:0]           pipe_rx7_char_is_k;
-  wire                 pipe_rx0_valid;
-  wire                 pipe_rx1_valid;
-  wire                 pipe_rx2_valid;
-  wire                 pipe_rx3_valid;
-  wire                 pipe_rx4_valid;
-  wire                 pipe_rx5_valid;
-  wire                 pipe_rx6_valid;
-  wire                 pipe_rx7_valid;
-  wire [15:0]          pipe_rx0_data;
-  wire [15:0]          pipe_rx1_data;
-  wire [15:0]          pipe_rx2_data;
-  wire [15:0]          pipe_rx3_data;
-  wire [15:0]          pipe_rx4_data;
-  wire [15:0]          pipe_rx5_data;
-  wire [15:0]          pipe_rx6_data;
-  wire [15:0]          pipe_rx7_data;
-  wire                 pipe_rx0_chanisaligned;
-  wire                 pipe_rx1_chanisaligned;
-  wire                 pipe_rx2_chanisaligned;
-  wire                 pipe_rx3_chanisaligned;
-  wire                 pipe_rx4_chanisaligned;
-  wire                 pipe_rx5_chanisaligned;
-  wire                 pipe_rx6_chanisaligned;
-  wire                 pipe_rx7_chanisaligned;
-  wire [2:0]           pipe_rx0_status;
-  wire [2:0]           pipe_rx1_status;
-  wire [2:0]           pipe_rx2_status;
-  wire [2:0]           pipe_rx3_status;
-  wire [2:0]           pipe_rx4_status;
-  wire [2:0]           pipe_rx5_status;
-  wire [2:0]           pipe_rx6_status;
-  wire [2:0]           pipe_rx7_status;
-  wire                 pipe_rx0_phy_status;
-  wire                 pipe_rx1_phy_status;
-  wire                 pipe_rx2_phy_status;
-  wire                 pipe_rx3_phy_status;
-  wire                 pipe_rx4_phy_status;
-  wire                 pipe_rx5_phy_status;
-  wire                 pipe_rx6_phy_status;
-  wire                 pipe_rx7_phy_status;
-
-  wire                 pipe_rx0_elec_idle;
-  wire                 pipe_rx1_elec_idle;
-  wire                 pipe_rx2_elec_idle;
-  wire                 pipe_rx3_elec_idle;
-  wire                 pipe_rx4_elec_idle;
-  wire                 pipe_rx5_elec_idle;
-  wire                 pipe_rx6_elec_idle;
-  wire                 pipe_rx7_elec_idle;
-
 
   wire                 pipe_tx_reset;
   wire                 pipe_tx_rate;
   wire                 pipe_tx_deemph;
   wire [2:0]           pipe_tx_margin;
-  wire                 pipe_rx0_polarity;
-  wire                 pipe_rx1_polarity;
-  wire                 pipe_rx2_polarity;
-  wire                 pipe_rx3_polarity;
-  wire                 pipe_rx4_polarity;
-  wire                 pipe_rx5_polarity;
-  wire                 pipe_rx6_polarity;
-  wire                 pipe_rx7_polarity;
-  wire                 pipe_tx0_compliance;
-  wire                 pipe_tx1_compliance;
-  wire                 pipe_tx2_compliance;
-  wire                 pipe_tx3_compliance;
-  wire                 pipe_tx4_compliance;
-  wire                 pipe_tx5_compliance;
-  wire                 pipe_tx6_compliance;
-  wire                 pipe_tx7_compliance;
-  wire [1:0]           pipe_tx0_char_is_k;
-  wire [1:0]           pipe_tx1_char_is_k;
-  wire [1:0]           pipe_tx2_char_is_k;
-  wire [1:0]           pipe_tx3_char_is_k;
-  wire [1:0]           pipe_tx4_char_is_k;
-  wire [1:0]           pipe_tx5_char_is_k;
-  wire [1:0]           pipe_tx6_char_is_k;
-  wire [1:0]           pipe_tx7_char_is_k;
-  wire [15:0]          pipe_tx0_data;
-  wire [15:0]          pipe_tx1_data;
-  wire [15:0]          pipe_tx2_data;
-  wire [15:0]          pipe_tx3_data;
-  wire [15:0]          pipe_tx4_data;
-  wire [15:0]          pipe_tx5_data;
-  wire [15:0]          pipe_tx6_data;
-  wire [15:0]          pipe_tx7_data;
-  wire                 pipe_tx0_elec_idle;
-  wire                 pipe_tx1_elec_idle;
-  wire                 pipe_tx2_elec_idle;
-  wire                 pipe_tx3_elec_idle;
-  wire                 pipe_tx4_elec_idle;
-  wire                 pipe_tx5_elec_idle;
-  wire                 pipe_tx6_elec_idle;
-  wire                 pipe_tx7_elec_idle;
-  wire [1:0]           pipe_tx0_powerdown;
-  wire [1:0]           pipe_tx1_powerdown;
-  wire [1:0]           pipe_tx2_powerdown;
-  wire [1:0]           pipe_tx3_powerdown;
-  wire [1:0]           pipe_tx4_powerdown;
-  wire [1:0]           pipe_tx5_powerdown;
-  wire [1:0]           pipe_tx6_powerdown;
-  wire [1:0]           pipe_tx7_powerdown;
 
   wire                 cfg_received_func_lvl_rst_n;
   wire                 cfg_err_cpl_rdy_n;
@@ -2228,558 +2091,7 @@ pcie_7x_0_pcie_bram_top_7x #(
 
 //end pcie_7x_0_pcie_7x }
 
-
-  //------------------------------------------------------------------------------------------------------------------//
-  // PIPE Interface PIPELINE Module                                                                                   //
-  //------------------------------------------------------------------------------------------------------------------//
-//begin pcie_7x_0_pcie_pipe_pipeline {
-// pcie_pipe_pipeline_i
-
-pcie_7x_0_pcie_pipe_misc # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_misc_i (
-
-      .pipe_tx_rcvr_det_i(pipe_tx_rcvr_det),
-      .pipe_tx_reset_i( 1'b0 ),
-      .pipe_tx_rate_i(pipe_tx_rate),
-      .pipe_tx_deemph_i(pipe_tx_deemph),
-      .pipe_tx_margin_i(pipe_tx_margin),
-      .pipe_tx_swing_i( 1'b0 ),
-
-      .pipe_tx_rcvr_det_o(pipe_tx_rcvr_det_gt),
-      .pipe_tx_reset_o( ),
-      .pipe_tx_rate_o(pipe_tx_rate_gt),
-      .pipe_tx_deemph_o(pipe_tx_deemph_gt),
-      .pipe_tx_margin_o(pipe_tx_margin_gt),
-      .pipe_tx_swing_o( ),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-  );
-
-
-pcie_7x_0_pcie_pipe_lane # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_lane_0_i (
-
-      .pipe_rx_chanisaligned_i(pipe_rx0_chanisaligned_gt),
-      .pipe_rx_char_is_k_i(pipe_rx0_char_is_k_gt),
-      .pipe_rx_data_i(pipe_rx0_data_gt),
-      .pipe_rx_elec_idle_i(pipe_rx0_elec_idle_gt),
-      .pipe_rx_phy_status_i(pipe_rx0_phy_status_gt),
-      .pipe_rx_polarity_i(pipe_rx0_polarity),
-      .pipe_rx_status_i(pipe_rx0_status_gt),
-      .pipe_rx_valid_i(pipe_rx0_valid_gt),
-      .pipe_tx_char_is_k_i(pipe_tx0_char_is_k),
-      .pipe_tx_compliance_i(pipe_tx0_compliance),
-      .pipe_tx_data_i(pipe_tx0_data),
-      .pipe_tx_elec_idle_i(pipe_tx0_elec_idle),
-      .pipe_tx_powerdown_i(pipe_tx0_powerdown),
-
-      .pipe_rx_chanisaligned_o(pipe_rx0_chanisaligned),
-      .pipe_rx_char_is_k_o(pipe_rx0_char_is_k),
-      .pipe_rx_data_o(pipe_rx0_data),
-      .pipe_rx_elec_idle_o(pipe_rx0_elec_idle),
-      .pipe_rx_phy_status_o(pipe_rx0_phy_status),
-      .pipe_rx_polarity_o(pipe_rx0_polarity_gt),
-      .pipe_rx_status_o(pipe_rx0_status),
-      .pipe_rx_valid_o(pipe_rx0_valid),
-      .pipe_tx_char_is_k_o(pipe_tx0_char_is_k_gt),
-      .pipe_tx_compliance_o(pipe_tx0_compliance_gt),
-      .pipe_tx_data_o(pipe_tx0_data_gt),
-      .pipe_tx_elec_idle_o(pipe_tx0_elec_idle_gt),
-      .pipe_tx_powerdown_o(pipe_tx0_powerdown_gt),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-
-    );
-
-pcie_7x_0_pcie_pipe_lane # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_lane_1_i (
-
-      .pipe_rx_chanisaligned_i(pipe_rx1_chanisaligned_gt),
-      .pipe_rx_char_is_k_i(pipe_rx1_char_is_k_gt),
-      .pipe_rx_data_i(pipe_rx1_data_gt),
-      .pipe_rx_elec_idle_i(pipe_rx1_elec_idle_gt),
-      .pipe_rx_phy_status_i(pipe_rx1_phy_status_gt),
-      .pipe_rx_polarity_i(pipe_rx1_polarity),
-      .pipe_rx_status_i(pipe_rx1_status_gt),
-      .pipe_rx_valid_i(pipe_rx1_valid_gt),
-      .pipe_tx_char_is_k_i(pipe_tx1_char_is_k),
-      .pipe_tx_compliance_i(pipe_tx1_compliance),
-      .pipe_tx_data_i(pipe_tx1_data),
-      .pipe_tx_elec_idle_i(pipe_tx1_elec_idle),
-      .pipe_tx_powerdown_i(pipe_tx1_powerdown),
-
-      .pipe_rx_chanisaligned_o(pipe_rx1_chanisaligned),
-      .pipe_rx_char_is_k_o(pipe_rx1_char_is_k),
-      .pipe_rx_data_o(pipe_rx1_data),
-      .pipe_rx_elec_idle_o(pipe_rx1_elec_idle),
-      .pipe_rx_phy_status_o(pipe_rx1_phy_status),
-      .pipe_rx_polarity_o(pipe_rx1_polarity_gt),
-      .pipe_rx_status_o(pipe_rx1_status),
-      .pipe_rx_valid_o(pipe_rx1_valid),
-      .pipe_tx_char_is_k_o(pipe_tx1_char_is_k_gt),
-      .pipe_tx_compliance_o(pipe_tx1_compliance_gt),
-      .pipe_tx_data_o(pipe_tx1_data_gt),
-      .pipe_tx_elec_idle_o(pipe_tx1_elec_idle_gt),
-      .pipe_tx_powerdown_o(pipe_tx1_powerdown_gt),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-
-    );
-
-pcie_7x_0_pcie_pipe_lane # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_lane_2_i (
-
-      .pipe_rx_chanisaligned_i(pipe_rx2_chanisaligned_gt),
-      .pipe_rx_char_is_k_i(pipe_rx2_char_is_k_gt),
-      .pipe_rx_data_i(pipe_rx2_data_gt),
-      .pipe_rx_elec_idle_i(pipe_rx2_elec_idle_gt),
-      .pipe_rx_phy_status_i(pipe_rx2_phy_status_gt),
-      .pipe_rx_polarity_i(pipe_rx2_polarity),
-      .pipe_rx_status_i(pipe_rx2_status_gt),
-      .pipe_rx_valid_i(pipe_rx2_valid_gt),
-      .pipe_tx_char_is_k_i(pipe_tx2_char_is_k),
-      .pipe_tx_compliance_i(pipe_tx2_compliance),
-      .pipe_tx_data_i(pipe_tx2_data),
-      .pipe_tx_elec_idle_i(pipe_tx2_elec_idle),
-      .pipe_tx_powerdown_i(pipe_tx2_powerdown),
-
-      .pipe_rx_chanisaligned_o(pipe_rx2_chanisaligned),
-      .pipe_rx_char_is_k_o(pipe_rx2_char_is_k),
-      .pipe_rx_data_o(pipe_rx2_data),
-      .pipe_rx_elec_idle_o(pipe_rx2_elec_idle),
-      .pipe_rx_phy_status_o(pipe_rx2_phy_status),
-      .pipe_rx_polarity_o(pipe_rx2_polarity_gt),
-      .pipe_rx_status_o(pipe_rx2_status),
-      .pipe_rx_valid_o(pipe_rx2_valid),
-      .pipe_tx_char_is_k_o(pipe_tx2_char_is_k_gt),
-      .pipe_tx_compliance_o(pipe_tx2_compliance_gt),
-      .pipe_tx_data_o(pipe_tx2_data_gt),
-      .pipe_tx_elec_idle_o(pipe_tx2_elec_idle_gt),
-      .pipe_tx_powerdown_o(pipe_tx2_powerdown_gt),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-
-    );
-
-pcie_7x_0_pcie_pipe_lane # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_lane_3_i (
-
-      .pipe_rx_chanisaligned_i(pipe_rx3_chanisaligned_gt),
-      .pipe_rx_char_is_k_i(pipe_rx3_char_is_k_gt),
-      .pipe_rx_data_i(pipe_rx3_data_gt),
-      .pipe_rx_elec_idle_i(pipe_rx3_elec_idle_gt),
-      .pipe_rx_phy_status_i(pipe_rx3_phy_status_gt),
-      .pipe_rx_polarity_i(pipe_rx3_polarity),
-      .pipe_rx_status_i(pipe_rx3_status_gt),
-      .pipe_rx_valid_i(pipe_rx3_valid_gt),
-      .pipe_tx_char_is_k_i(pipe_tx3_char_is_k),
-      .pipe_tx_compliance_i(pipe_tx3_compliance),
-      .pipe_tx_data_i(pipe_tx3_data),
-      .pipe_tx_elec_idle_i(pipe_tx3_elec_idle),
-      .pipe_tx_powerdown_i(pipe_tx3_powerdown),
-
-      .pipe_rx_chanisaligned_o(pipe_rx3_chanisaligned),
-      .pipe_rx_char_is_k_o(pipe_rx3_char_is_k),
-      .pipe_rx_data_o(pipe_rx3_data),
-      .pipe_rx_elec_idle_o(pipe_rx3_elec_idle),
-      .pipe_rx_phy_status_o(pipe_rx3_phy_status),
-      .pipe_rx_polarity_o(pipe_rx3_polarity_gt),
-      .pipe_rx_status_o(pipe_rx3_status),
-      .pipe_rx_valid_o(pipe_rx3_valid),
-      .pipe_tx_char_is_k_o(pipe_tx3_char_is_k_gt),
-      .pipe_tx_compliance_o(pipe_tx3_compliance_gt),
-      .pipe_tx_data_o(pipe_tx3_data_gt),
-      .pipe_tx_elec_idle_o(pipe_tx3_elec_idle_gt),
-      .pipe_tx_powerdown_o(pipe_tx3_powerdown_gt),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-
-    );
-
-pcie_7x_0_pcie_pipe_lane # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_lane_4_i (
-
-      .pipe_rx_chanisaligned_i(pipe_rx4_chanisaligned_gt),
-      .pipe_rx_char_is_k_i(pipe_rx4_char_is_k_gt),
-      .pipe_rx_data_i(pipe_rx4_data_gt),
-      .pipe_rx_elec_idle_i(pipe_rx4_elec_idle_gt),
-      .pipe_rx_phy_status_i(pipe_rx4_phy_status_gt),
-      .pipe_rx_polarity_i(pipe_rx4_polarity),
-      .pipe_rx_status_i(pipe_rx4_status_gt),
-      .pipe_rx_valid_i(pipe_rx4_valid_gt),
-      .pipe_tx_char_is_k_i(pipe_tx4_char_is_k),
-      .pipe_tx_compliance_i(pipe_tx4_compliance),
-      .pipe_tx_data_i(pipe_tx4_data),
-      .pipe_tx_elec_idle_i(pipe_tx4_elec_idle),
-      .pipe_tx_powerdown_i(pipe_tx4_powerdown),
-
-      .pipe_rx_chanisaligned_o(pipe_rx4_chanisaligned),
-      .pipe_rx_char_is_k_o(pipe_rx4_char_is_k),
-      .pipe_rx_data_o(pipe_rx4_data),
-      .pipe_rx_elec_idle_o(pipe_rx4_elec_idle),
-      .pipe_rx_phy_status_o(pipe_rx4_phy_status),
-      .pipe_rx_polarity_o(pipe_rx4_polarity_gt),
-      .pipe_rx_status_o(pipe_rx4_status),
-      .pipe_rx_valid_o(pipe_rx4_valid),
-      .pipe_tx_char_is_k_o(pipe_tx4_char_is_k_gt),
-      .pipe_tx_compliance_o(pipe_tx4_compliance_gt),
-      .pipe_tx_data_o(pipe_tx4_data_gt),
-      .pipe_tx_elec_idle_o(pipe_tx4_elec_idle_gt),
-      .pipe_tx_powerdown_o(pipe_tx4_powerdown_gt),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-
-    );
-
-pcie_7x_0_pcie_pipe_lane # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_lane_5_i (
-
-      .pipe_rx_chanisaligned_i(pipe_rx5_chanisaligned_gt),
-      .pipe_rx_char_is_k_i(pipe_rx5_char_is_k_gt),
-      .pipe_rx_data_i(pipe_rx5_data_gt),
-      .pipe_rx_elec_idle_i(pipe_rx5_elec_idle_gt),
-      .pipe_rx_phy_status_i(pipe_rx5_phy_status_gt),
-      .pipe_rx_polarity_i(pipe_rx5_polarity),
-      .pipe_rx_status_i(pipe_rx5_status_gt),
-      .pipe_rx_valid_i(pipe_rx5_valid_gt),
-      .pipe_tx_char_is_k_i(pipe_tx5_char_is_k),
-      .pipe_tx_compliance_i(pipe_tx5_compliance),
-      .pipe_tx_data_i(pipe_tx5_data),
-      .pipe_tx_elec_idle_i(pipe_tx5_elec_idle),
-      .pipe_tx_powerdown_i(pipe_tx5_powerdown),
-
-      .pipe_rx_chanisaligned_o(pipe_rx5_chanisaligned),
-      .pipe_rx_char_is_k_o(pipe_rx5_char_is_k),
-      .pipe_rx_data_o(pipe_rx5_data),
-      .pipe_rx_elec_idle_o(pipe_rx5_elec_idle),
-      .pipe_rx_phy_status_o(pipe_rx5_phy_status),
-      .pipe_rx_polarity_o(pipe_rx5_polarity_gt),
-      .pipe_rx_status_o(pipe_rx5_status),
-      .pipe_rx_valid_o(pipe_rx5_valid),
-      .pipe_tx_char_is_k_o(pipe_tx5_char_is_k_gt),
-      .pipe_tx_compliance_o(pipe_tx5_compliance_gt),
-      .pipe_tx_data_o(pipe_tx5_data_gt),
-      .pipe_tx_elec_idle_o(pipe_tx5_elec_idle_gt),
-      .pipe_tx_powerdown_o(pipe_tx5_powerdown_gt),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-
-    );
-
-pcie_7x_0_pcie_pipe_lane # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_lane_6_i (
-
-      .pipe_rx_chanisaligned_i(pipe_rx6_chanisaligned_gt),
-      .pipe_rx_char_is_k_i(pipe_rx6_char_is_k_gt),
-      .pipe_rx_data_i(pipe_rx6_data_gt),
-      .pipe_rx_elec_idle_i(pipe_rx6_elec_idle_gt),
-      .pipe_rx_phy_status_i(pipe_rx6_phy_status_gt),
-      .pipe_rx_polarity_i(pipe_rx6_polarity),
-      .pipe_rx_status_i(pipe_rx6_status_gt),
-      .pipe_rx_valid_i(pipe_rx6_valid_gt),
-      .pipe_tx_char_is_k_i(pipe_tx6_char_is_k),
-      .pipe_tx_compliance_i(pipe_tx6_compliance),
-      .pipe_tx_data_i(pipe_tx6_data),
-      .pipe_tx_elec_idle_i(pipe_tx6_elec_idle),
-      .pipe_tx_powerdown_i(pipe_tx6_powerdown),
-
-      .pipe_rx_chanisaligned_o(pipe_rx6_chanisaligned),
-      .pipe_rx_char_is_k_o(pipe_rx6_char_is_k),
-      .pipe_rx_data_o(pipe_rx6_data),
-      .pipe_rx_elec_idle_o(pipe_rx6_elec_idle),
-      .pipe_rx_phy_status_o(pipe_rx6_phy_status),
-      .pipe_rx_polarity_o(pipe_rx6_polarity_gt),
-      .pipe_rx_status_o(pipe_rx6_status),
-      .pipe_rx_valid_o(pipe_rx6_valid),
-      .pipe_tx_char_is_k_o(pipe_tx6_char_is_k_gt),
-      .pipe_tx_compliance_o(pipe_tx6_compliance_gt),
-      .pipe_tx_data_o(pipe_tx6_data_gt),
-      .pipe_tx_elec_idle_o(pipe_tx6_elec_idle_gt),
-      .pipe_tx_powerdown_o(pipe_tx6_powerdown_gt),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-
-    );
-
-pcie_7x_0_pcie_pipe_lane # (
-
-      .PIPE_PIPELINE_STAGES(PIPE_PIPELINE_STAGES)
-
-    )
-    pipe_lane_7_i (
-
-      .pipe_rx_chanisaligned_i(pipe_rx7_chanisaligned_gt),
-      .pipe_rx_char_is_k_i(pipe_rx7_char_is_k_gt),
-      .pipe_rx_data_i(pipe_rx7_data_gt),
-      .pipe_rx_elec_idle_i(pipe_rx7_elec_idle_gt),
-      .pipe_rx_phy_status_i(pipe_rx7_phy_status_gt),
-      .pipe_rx_polarity_i(pipe_rx7_polarity),
-      .pipe_rx_status_i(pipe_rx7_status_gt),
-      .pipe_rx_valid_i(pipe_rx7_valid_gt),
-      .pipe_tx_char_is_k_i(pipe_tx7_char_is_k),
-      .pipe_tx_compliance_i(pipe_tx7_compliance),
-      .pipe_tx_data_i(pipe_tx7_data),
-      .pipe_tx_elec_idle_i(pipe_tx7_elec_idle),
-      .pipe_tx_powerdown_i(pipe_tx7_powerdown),
-
-      .pipe_rx_chanisaligned_o(pipe_rx7_chanisaligned),
-      .pipe_rx_char_is_k_o(pipe_rx7_char_is_k),
-      .pipe_rx_data_o(pipe_rx7_data),
-      .pipe_rx_elec_idle_o(pipe_rx7_elec_idle),
-      .pipe_rx_phy_status_o(pipe_rx7_phy_status),
-      .pipe_rx_polarity_o(pipe_rx7_polarity_gt),
-      .pipe_rx_status_o(pipe_rx7_status),
-      .pipe_rx_valid_o(pipe_rx7_valid),
-      .pipe_tx_char_is_k_o(pipe_tx7_char_is_k_gt),
-      .pipe_tx_compliance_o(pipe_tx7_compliance_gt),
-      .pipe_tx_data_o(pipe_tx7_data_gt),
-      .pipe_tx_elec_idle_o(pipe_tx7_elec_idle_gt),
-      .pipe_tx_powerdown_o(pipe_tx7_powerdown_gt),
-
-      .pipe_clk(pipe_clk),
-      .rst_n(phy_rdy_n)
-
-    );
-
-//end pcie_7x_0_pcie_pipe_pipeline }
-
 //end pcie_7x_0_pcie_top }
-
-  //------------------------------------------------------------------------------------------------------------------//
-  // **** V7/K7/A7 GTX Wrapper ****                                                                                   //
-  //   The 7-Series GTX Wrapper includes the following:                                                               //
-  //     1) Virtex-7 GTX                                                                                              //
-  //     2) Kintex-7 GTX                                                                                              //
-  //     3) Artix-7  GTP                                                                                              //
-  //------------------------------------------------------------------------------------------------------------------//
-pcie_7x_0_gt_top #(
-    .LINK_CAP_MAX_LINK_WIDTH       ( LINK_CAP_MAX_LINK_WIDTH ),
-    .REF_CLK_FREQ                  ( REF_CLK_FREQ ),
-    .USER_CLK_FREQ                 ( USER_CLK_FREQ ),
-    .USER_CLK2_DIV2                ( USER_CLK2_DIV2 ),
-
-    // synthesis translate_off
-    .PL_FAST_TRAIN                 ( ENABLE_FAST_SIM_TRAINING ),
-    // synthesis translate_on
-
-    .PCIE_EXT_CLK                  ( PCIE_EXT_CLK ),
-    .PCIE_USE_MODE                 ( PCIE_USE_MODE ),
-    .PCIE_GT_DEVICE                ( PCIE_GT_DEVICE ),
-    .PCIE_PLL_SEL                  ( PCIE_PLL_SEL ),
-    .PCIE_ASYNC_EN                 ( PCIE_ASYNC_EN ),
-    .PCIE_TXBUF_EN                 ( PCIE_TXBUF_EN ),
-    .PCIE_CHAN_BOND                ( PCIE_CHAN_BOND )
-  ) gt_top_i (
-    // pl ltssm
-    .pl_ltssm_state                ( pl_ltssm_state_int ),
-
-    // Pipe Common Signals
-    .pipe_tx_rcvr_det              ( pipe_tx_rcvr_det_gt  ),
-    .pipe_tx_reset                 ( 1'b0                 ),
-    .pipe_tx_rate                  ( pipe_tx_rate_gt      ),
-    .pipe_tx_deemph                ( pipe_tx_deemph_gt    ),
-    .pipe_tx_margin                ( pipe_tx_margin_gt    ),
-    .pipe_tx_swing                 ( 1'b0                 ),
-
-    // Pipe Per-Lane Signals - Lane 0
-    .pipe_rx0_char_is_k            ( pipe_rx0_char_is_k_gt),
-    .pipe_rx0_data                 ( pipe_rx0_data_gt     ),
-    .pipe_rx0_valid                ( pipe_rx0_valid_gt    ),
-    .pipe_rx0_chanisaligned        ( pipe_rx0_chanisaligned_gt   ),
-    .pipe_rx0_status               ( pipe_rx0_status_gt      ),
-    .pipe_rx0_phy_status           ( pipe_rx0_phy_status_gt  ),
-    .pipe_rx0_elec_idle            ( pipe_rx0_elec_idle_gt   ),
-    .pipe_rx0_polarity             ( pipe_rx0_polarity_gt    ),
-    .pipe_tx0_compliance           ( pipe_tx0_compliance_gt  ),
-    .pipe_tx0_char_is_k            ( pipe_tx0_char_is_k_gt   ),
-    .pipe_tx0_data                 ( pipe_tx0_data_gt        ),
-    .pipe_tx0_elec_idle            ( pipe_tx0_elec_idle_gt   ),
-    .pipe_tx0_powerdown            ( pipe_tx0_powerdown_gt   ),
-
-    // Pipe Per-Lane Signals - Lane 1
-
-    .pipe_rx1_char_is_k            ( pipe_rx1_char_is_k_gt),
-    .pipe_rx1_data                 ( pipe_rx1_data_gt     ),
-    .pipe_rx1_valid                ( pipe_rx1_valid_gt    ),
-    .pipe_rx1_chanisaligned        ( pipe_rx1_chanisaligned_gt   ),
-    .pipe_rx1_status               ( pipe_rx1_status_gt      ),
-    .pipe_rx1_phy_status           ( pipe_rx1_phy_status_gt  ),
-    .pipe_rx1_elec_idle            ( pipe_rx1_elec_idle_gt   ),
-    .pipe_rx1_polarity             ( pipe_rx1_polarity_gt    ),
-    .pipe_tx1_compliance           ( pipe_tx1_compliance_gt  ),
-    .pipe_tx1_char_is_k            ( pipe_tx1_char_is_k_gt   ),
-    .pipe_tx1_data                 ( pipe_tx1_data_gt        ),
-    .pipe_tx1_elec_idle            ( pipe_tx1_elec_idle_gt   ),
-    .pipe_tx1_powerdown            ( pipe_tx1_powerdown_gt   ),
-
-    // Pipe Per-Lane Signals - Lane 2
-
-    .pipe_rx2_char_is_k            ( pipe_rx2_char_is_k_gt),
-    .pipe_rx2_data                 ( pipe_rx2_data_gt     ),
-    .pipe_rx2_valid                ( pipe_rx2_valid_gt    ),
-    .pipe_rx2_chanisaligned        ( pipe_rx2_chanisaligned_gt   ),
-    .pipe_rx2_status               ( pipe_rx2_status_gt      ),
-    .pipe_rx2_phy_status           ( pipe_rx2_phy_status_gt  ),
-    .pipe_rx2_elec_idle            ( pipe_rx2_elec_idle_gt   ),
-    .pipe_rx2_polarity             ( pipe_rx2_polarity_gt    ),
-    .pipe_tx2_compliance           ( pipe_tx2_compliance_gt  ),
-    .pipe_tx2_char_is_k            ( pipe_tx2_char_is_k_gt   ),
-    .pipe_tx2_data                 ( pipe_tx2_data_gt        ),
-    .pipe_tx2_elec_idle            ( pipe_tx2_elec_idle_gt   ),
-    .pipe_tx2_powerdown            ( pipe_tx2_powerdown_gt   ),
-
-    // Pipe Per-Lane Signals - Lane 3
-
-    .pipe_rx3_char_is_k            ( pipe_rx3_char_is_k_gt),
-    .pipe_rx3_data                 ( pipe_rx3_data_gt     ),
-    .pipe_rx3_valid                ( pipe_rx3_valid_gt    ),
-    .pipe_rx3_chanisaligned        ( pipe_rx3_chanisaligned_gt   ),
-    .pipe_rx3_status               ( pipe_rx3_status_gt      ),
-    .pipe_rx3_phy_status           ( pipe_rx3_phy_status_gt  ),
-    .pipe_rx3_elec_idle            ( pipe_rx3_elec_idle_gt   ),
-    .pipe_rx3_polarity             ( pipe_rx3_polarity_gt    ),
-    .pipe_tx3_compliance           ( pipe_tx3_compliance_gt  ),
-    .pipe_tx3_char_is_k            ( pipe_tx3_char_is_k_gt   ),
-    .pipe_tx3_data                 ( pipe_tx3_data_gt        ),
-    .pipe_tx3_elec_idle            ( pipe_tx3_elec_idle_gt   ),
-    .pipe_tx3_powerdown            ( pipe_tx3_powerdown_gt   ),
-
-    // Pipe Per-Lane Signals - Lane 4
-
-    .pipe_rx4_char_is_k            ( pipe_rx4_char_is_k_gt),
-    .pipe_rx4_data                 ( pipe_rx4_data_gt     ),
-    .pipe_rx4_valid                ( pipe_rx4_valid_gt    ),
-    .pipe_rx4_chanisaligned        ( pipe_rx4_chanisaligned_gt   ),
-    .pipe_rx4_status               ( pipe_rx4_status_gt      ),
-    .pipe_rx4_phy_status           ( pipe_rx4_phy_status_gt  ),
-    .pipe_rx4_elec_idle            ( pipe_rx4_elec_idle_gt   ),
-    .pipe_rx4_polarity             ( pipe_rx4_polarity_gt    ),
-    .pipe_tx4_compliance           ( pipe_tx4_compliance_gt  ),
-    .pipe_tx4_char_is_k            ( pipe_tx4_char_is_k_gt   ),
-    .pipe_tx4_data                 ( pipe_tx4_data_gt        ),
-    .pipe_tx4_elec_idle            ( pipe_tx4_elec_idle_gt   ),
-    .pipe_tx4_powerdown            ( pipe_tx4_powerdown_gt   ),
-
-    // Pipe Per-Lane Signals - Lane 5
-
-    .pipe_rx5_char_is_k            ( pipe_rx5_char_is_k_gt),
-    .pipe_rx5_data                 ( pipe_rx5_data_gt     ),
-    .pipe_rx5_valid                ( pipe_rx5_valid_gt    ),
-    .pipe_rx5_chanisaligned        ( pipe_rx5_chanisaligned_gt   ),
-    .pipe_rx5_status               ( pipe_rx5_status_gt      ),
-    .pipe_rx5_phy_status           ( pipe_rx5_phy_status_gt  ),
-    .pipe_rx5_elec_idle            ( pipe_rx5_elec_idle_gt   ),
-    .pipe_rx5_polarity             ( pipe_rx5_polarity_gt    ),
-    .pipe_tx5_compliance           ( pipe_tx5_compliance_gt  ),
-    .pipe_tx5_char_is_k            ( pipe_tx5_char_is_k_gt   ),
-    .pipe_tx5_data                 ( pipe_tx5_data_gt        ),
-    .pipe_tx5_elec_idle            ( pipe_tx5_elec_idle_gt   ),
-    .pipe_tx5_powerdown            ( pipe_tx5_powerdown_gt   ),
-
-    // Pipe Per-Lane Signals - Lane 6
-
-    .pipe_rx6_char_is_k            ( pipe_rx6_char_is_k_gt),
-    .pipe_rx6_data                 ( pipe_rx6_data_gt     ),
-    .pipe_rx6_valid                ( pipe_rx6_valid_gt    ),
-    .pipe_rx6_chanisaligned        ( pipe_rx6_chanisaligned_gt   ),
-    .pipe_rx6_status               ( pipe_rx6_status_gt      ),
-    .pipe_rx6_phy_status           ( pipe_rx6_phy_status_gt  ),
-    .pipe_rx6_elec_idle            ( pipe_rx6_elec_idle_gt   ),
-    .pipe_rx6_polarity             ( pipe_rx6_polarity_gt    ),
-    .pipe_tx6_compliance           ( pipe_tx6_compliance_gt  ),
-    .pipe_tx6_char_is_k            ( pipe_tx6_char_is_k_gt   ),
-    .pipe_tx6_data                 ( pipe_tx6_data_gt        ),
-    .pipe_tx6_elec_idle            ( pipe_tx6_elec_idle_gt   ),
-    .pipe_tx6_powerdown            ( pipe_tx6_powerdown_gt   ),
-
-    // Pipe Per-Lane Signals - Lane 7
-
-    .pipe_rx7_char_is_k            ( pipe_rx7_char_is_k_gt),
-    .pipe_rx7_data                 ( pipe_rx7_data_gt     ),
-    .pipe_rx7_valid                ( pipe_rx7_valid_gt    ),
-    .pipe_rx7_chanisaligned        ( pipe_rx7_chanisaligned_gt   ),
-    .pipe_rx7_status               ( pipe_rx7_status_gt      ),
-    .pipe_rx7_phy_status           ( pipe_rx7_phy_status_gt  ),
-    .pipe_rx7_elec_idle            ( pipe_rx7_elec_idle_gt   ),
-    .pipe_rx7_polarity             ( pipe_rx7_polarity_gt    ),
-    .pipe_tx7_compliance           ( pipe_tx7_compliance_gt  ),
-    .pipe_tx7_char_is_k            ( pipe_tx7_char_is_k_gt   ),
-    .pipe_tx7_data                 ( pipe_tx7_data_gt        ),
-    .pipe_tx7_elec_idle            ( pipe_tx7_elec_idle_gt   ),
-    .pipe_tx7_powerdown            ( pipe_tx7_powerdown_gt   ),
-
-    // PCI Express Signals
-    .pci_exp_txn                   ( pci_exp_txn          ),
-    .pci_exp_txp                   ( pci_exp_txp          ),
-    .pci_exp_rxn                   ( pci_exp_rxn          ),
-    .pci_exp_rxp                   ( pci_exp_rxp          ),
-
-    // Non PIPE Signals
-    .sys_clk                       ( sys_clk             ),
-    .sys_rst_n                     ( sys_rst_n_int       ),
-    .PIPE_MMCM_RST_N               ( pipe_mmcm_rst_n     ),        // Async      | Async
-    .pipe_clk                      ( pipe_clk            ),
-
-    .user_clk                      (                     ), // not used with PCIE_EXT_CLK = TRUE
-    .user_clk2                     (                     ), // not used with PCIE_EXT_CLK = TRUE
-    .phy_rdy_n                     ( phy_rdy_n           ),
-
-    .PIPE_PCLK_IN                  ( pipe_pclk_in ),
-    .PIPE_RXUSRCLK_IN              ( pipe_rxusrclk_in ),
-    .PIPE_RXOUTCLK_IN              (                     ), // only used for debug
-    .PIPE_DCLK_IN                  ( pipe_dclk_in ),
-    .PIPE_USERCLK1_IN              (                     ), // not used with PCIE_EXT_CLK = TRUE
-    .PIPE_USERCLK2_IN              (                     ), // not used with PCIE_EXT_CLK = TRUE
-    .PIPE_OOBCLK_IN                ( pipe_oobclk_in ),
-    .PIPE_MMCM_LOCK_IN             ( mmcm_lock_int ),
-
-    .PIPE_TXOUTCLK_OUT             ( pipe_txoutclk_out ),
-    .PIPE_RXOUTCLK_OUT             (                   ), // only used for debug
-    .PIPE_PCLK_SEL_OUT             ( pipe_pclk_sel_out ),
-    .PIPE_GEN3_OUT                 ( pipe_gen3_out )
-  );
-
-  //------------------------------------------------------------------------------------------------------------------//
 
 //end pcie_7x_v2_1_core_top }
 
