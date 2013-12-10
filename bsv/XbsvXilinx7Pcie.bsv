@@ -68,7 +68,6 @@ interface PCIE_TRN_X7;
    interface Clock            clk;
    interface Reset            reset;
    method    Bool             lnk_up;
-   method    Bool             app_rdy;
    method    Bit#(8)          fc_ph;
    method    Bit#(12)         fc_pd;
    method    Bit#(8)          fc_nph;
@@ -248,7 +247,6 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
       output_clock                      clk(user_clk_out);
       output_reset                      reset(user_reset_out);
       method user_lnk_up                lnk_up                                                              clocked_by(no_clock) reset_by(no_reset); /* semi-static */
-      method user_app_rdy               app_rdy                                                             clocked_by(no_clock) reset_by(no_reset);
       method fc_ph                      fc_ph                                                               clocked_by(trn_clk)  reset_by(no_reset);
       method fc_pd                      fc_pd                                                               clocked_by(trn_clk)  reset_by(no_reset);
       method fc_nph                     fc_nph                                                              clocked_by(trn_clk)  reset_by(no_reset);
@@ -387,7 +385,7 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
       method         			acs(cfg_err_acs)                                  enable((*inhigh*)en88) clocked_by(trn_clk) reset_by(no_reset);
    endinterface
       
-   schedule (trn_lnk_up, trn_app_rdy, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel,
+   schedule (trn_lnk_up, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel,
              pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
 	     pl_link_gen2_capable, pl_link_partner_gen2_supported, pl_link_upcfg_capable, pl_sel_link_rate, pl_sel_link_width,
 	     pl_ltssm_state, pl_rx_pm_state, pl_tx_pm_state, pl_directed_link_auton, pl_directed_link_change, 
@@ -410,7 +408,7 @@ module vMkXilinx7PCIExpress#(PCIEParams params)(PCIE_X7#(lanes))
              tx_tdata, tx_tsof, tx_teof, tx_trem, tx_tecrc_gen, tx_tstr, tx_tdisc, tx_terrfwd, tx_tvalid, tx_tcfg_gnt,
              tx_tready,tx_tbuf_av,tx_terr_drop,tx_tcfg_req
 	     ) CF 
-            (trn_lnk_up, trn_app_rdy, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel,
+            (trn_lnk_up, trn_fc_ph, trn_fc_pd, trn_fc_nph, trn_fc_npd, trn_fc_cplh, trn_fc_cpld, trn_fc_sel,
 	     pl_initial_link_width, pl_phy_link_up, pl_lane_reversal_mode,
 	     pl_link_gen2_capable, pl_link_partner_gen2_supported, pl_link_upcfg_capable, pl_sel_link_rate, pl_sel_link_width,
 	     pl_ltssm_state, pl_rx_pm_state, pl_tx_pm_state, pl_directed_link_auton, pl_directed_link_change, 
@@ -444,7 +442,6 @@ interface PCIE_TRN_COMMON_X7;
    interface Clock       clk2;
    interface Reset       reset_n;
    method    Bool        link_up;
-   method    Bool        app_ready;
 endinterface
     
 interface PCIE_TRN_XMIT_X7;
@@ -604,7 +601,6 @@ module mkPCIExpressEndpointX7#(PCIEParams params)(PCIExpressX7#(lanes))
       interface clk2    = user_clk_half;
       interface reset_n = user_reset_n;
       method    link_up = pcie_ep.trn.lnk_up;
-      method    app_ready = pcie_ep.trn.app_rdy;
    endinterface
       
    interface PCIE_TRN_XMIT_X7 trn_tx;

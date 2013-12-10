@@ -721,8 +721,9 @@ module xilinx_x7_pcie_wrapper #(
    wire pipe_clk;
 
 
-  wire                 user_clk;
-  wire                 user_clk2;
+   wire                user_clk     = pipe_userclk1_in;
+   wire	               user_clk2    = pipe_userclk2_in;
+  assign               user_clk_out = user_clk2;
 
   wire [15:0]          cfg_vend_id        = CFG_VEND_ID;
   wire [15:0]          cfg_dev_id         = CFG_DEV_ID;
@@ -1396,7 +1397,6 @@ module xilinx_x7_pcie_wrapper #(
   wire [3:0]        trn_tdst_rdy_bus;
 
   // Assignments to outputs
-  assign            user_clk_out = user_clk2;
   assign            trn_tdst_rdy = trn_tdst_rdy_bus[0];
 
   //----------------------------------------------------------------------//
@@ -2762,16 +2762,16 @@ pcie_7x_0_gt_top #(
     .PIPE_MMCM_RST_N               ( pipe_mmcm_rst_n     ),        // Async      | Async
     .pipe_clk                      ( pipe_clk            ),
 
-    .user_clk                      ( user_clk            ),
-    .user_clk2                     ( user_clk2           ),
+    .user_clk                      (                     ), // not used with PCIE_EXT_CLK = TRUE
+    .user_clk2                     (                     ), // not used with PCIE_EXT_CLK = TRUE
     .phy_rdy_n                     ( phy_rdy_n           ),
 
     .PIPE_PCLK_IN                  ( pipe_pclk_in ),
     .PIPE_RXUSRCLK_IN              ( pipe_rxusrclk_in ),
     .PIPE_RXOUTCLK_IN              ( pipe_rxoutclk_in ),
     .PIPE_DCLK_IN                  ( pipe_dclk_in ),
-    .PIPE_USERCLK1_IN              ( pipe_userclk1_in ),
-    .PIPE_USERCLK2_IN              ( pipe_userclk2_in ),
+    .PIPE_USERCLK1_IN              (                     ), // not used with PCIE_EXT_CLK = TRUE
+    .PIPE_USERCLK2_IN              (                     ), // not used with PCIE_EXT_CLK = TRUE
     .PIPE_OOBCLK_IN                ( pipe_oobclk_in ),
     .PIPE_MMCM_LOCK_IN             ( mmcm_lock_int ),
 
