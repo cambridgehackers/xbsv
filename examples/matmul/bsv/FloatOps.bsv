@@ -2,6 +2,7 @@ import FIFOF::*;
 import GetPut::*;
 import ClientServer::*;
 import FloatingPoint::*;
+import FixedPoint::*;
 import DefaultValue::*;
 import Randomizable::*;
 import Vector::*;
@@ -9,6 +10,8 @@ import StmtFSM::*;
 import Pipe::*;
 import FIFO::*;
 import FpMac::*;
+
+typedef FixedPoint#(16,16) Fixed;
 
 interface Alu#(type numtype);
    interface Put#(Tuple2#(numtype,numtype)) request;
@@ -136,6 +139,110 @@ instance AluClass#(Float);
    endmodule
    module mkSubPipe#(PipeOut#(Tuple2#(Float,Float)) xypipe)(PipeOut#(Float));
       let pipe <- mkFloatSubPipe(xypipe);
+      return pipe;
+   endmodule
+endinstance
+
+(* synthesize *)
+module mkFixedAdder#(RoundMode rmode)(Alu#(Fixed));
+   FIFO#(Fixed) fifo <- mkFIFO();
+   interface Put request;
+      method Action put(Tuple2#(Fixed,Fixed) req);
+	 match { .a, .b } = req;
+	 fifo.enq(a + b);
+      endmethod
+   endinterface
+   interface Get response;
+      method ActionValue#(Tuple2#(Fixed,Exception)) get();
+	 let resp <- toGet(fifo).get();
+	 return tuple2(resp,defaultValue);
+      endmethod
+   endinterface
+endmodule
+
+module mkFixedAddPipe#(PipeOut#(Tuple2#(Fixed,Fixed)) xypipe)(PipeOut#(Fixed));
+   let adder <- mkFixedAdder(defaultValue);
+   FIFOF#(Fixed) fifo <- mkFIFOF();
+   rule consumexy;
+      let xy = xypipe.first();
+      xypipe.deq;
+      adder.request.put(tuple2(tpl_1(xy),tpl_2(xy)));
+   endrule
+   rule enqout;
+      let resp <- adder.response.get();
+      fifo.enq(tpl_1(resp));
+   endrule
+   return toPipeOut(fifo);
+endmodule
+
+(* synthesize *)
+module mkFixedSubtracter#(RoundMode rmode)(Alu#(Fixed));
+   FIFO#(Fixed) fifo <- mkFIFO();
+   interface Put request;
+      method Action put(Tuple2#(Fixed,Fixed) req);
+	 match { .a, .b } = req;
+	 fifo.enq(a - b);
+      endmethod
+   endinterface
+   interface Get response;
+      method ActionValue#(Tuple2#(Fixed,Exception)) get();
+	 let resp <- toGet(fifo).get();
+	 return tuple2(resp, defaultValue);
+      endmethod
+   endinterface
+endmodule
+
+module mkFixedSubPipe#(PipeOut#(Tuple2#(Fixed,Fixed)) xypipe)(PipeOut#(Fixed));
+   let subtracter <- mkFixedSubtracter(defaultValue);
+   FIFOF#(Fixed) fifo <- mkFIFOF();
+   rule consumexy;
+      let xy = xypipe.first();
+      xypipe.deq;
+      subtracter.request.put(tuple2(tpl_1(xy),tpl_2(xy)));
+   endrule
+   rule enqout;
+      let resp <- subtracter.response.get();
+      fifo.enq(tpl_1(resp));
+   endrule
+   return toPipeOut(fifo);
+endmodule
+
+(* synthesize *)
+module mkFixedMultiplier#(RoundMode rmode)(Alu#(Fixed));
+   FIFO#(Fixed) fifo <- mkFIFO();
+   interface Put request;
+      method Action put(Tuple2#(Fixed,Fixed) req);
+	 match { .a, .b } = req;
+	 fifo.enq(a * b);
+      endmethod
+   endinterface
+   interface Get response;
+      method ActionValue#(Tuple2#(Fixed,Exception)) get();
+	 let resp <- toGet(fifo).get();
+	 return tuple2(resp, defaultValue);
+      endmethod
+   endinterface
+endmodule
+
+instance AluClass#(Fixed);
+   module mkAdder#(RoundMode rmode)(Alu#(Fixed));
+      let adder <- mkFixedAdder(rmode);
+      return adder;
+   endmodule
+   module mkAddPipe#(PipeOut#(Tuple2#(Fixed,Fixed)) xypipe)(PipeOut#(Fixed));
+      let pipe <- mkFixedAddPipe(xypipe);
+      return pipe;
+   endmodule
+   module mkSubtracter#(RoundMode rmode)(Alu#(Fixed));
+      let sub <- mkFixedSubtracter(rmode);
+      return sub;
+   endmodule
+   module mkMultiplier#(RoundMode rmode)(Alu#(Fixed));
+      let mul <- mkFixedMultiplier(rmode);
+      return mul;
+   endmodule
+   module mkSubPipe#(PipeOut#(Tuple2#(Fixed,Fixed)) xypipe)(PipeOut#(Fixed));
+      let pipe <- mkFixedSubPipe(xypipe);
       return pipe;
    endmodule
 endinstance
