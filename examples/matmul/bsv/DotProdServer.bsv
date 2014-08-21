@@ -66,25 +66,33 @@ typedef struct {
    Bool last;
 } MmToken deriving (Eq,Bits);
 
+//`define USE_FIXED
+`ifdef USE_FIXED
+typedef Fixed Value;
+`else
+typedef Float Value;
+`endif
+
 typedef struct {
 `ifdef TAGGED_TOKENS
    UInt#(32) row;
    UInt#(32) col;
 `endif
-   Float v;
+   Value v;
    Bool first;
    Bool last;
 } DotProdToken deriving (Eq,Bits);
 
 function DotProdToken toDotProdToken(MmToken token);
-   return DotProdToken { v: token.v, first: token.first, last: token.last
+   return DotProdToken { v: toValue(token.v), first: token.first, last: token.last
 `ifdef TAGGED_TOKENS
       , row: token.row, col: token.col
 `endif
       };
 endfunction
 function MmToken toMmToken(DotProdToken token);
-   return MmToken { v: token.v, first: token.first, last: token.last
+   return MmToken { v: fromValue(token.v),
+      first: token.first, last: token.last
 `ifdef TAGGED_TOKENS
       , row: token.row, col: token.col
 `endif
@@ -112,9 +120,9 @@ module  mkSharedInterleavedDotProdServerConfig#(UInt#(TLog#(TMul#(J,K))) label)(
    
    Reg#(UInt#(20)) countReg     <- mkReg(0);
 
-   Alu#(Float) mul   <- mkMultiplier(defaultValue);
-   Alu#(Float) adder <- mkAdder(defaultValue);
-   FIFOF#(Float) adder_buffer <- mkSizedFIFOF(valueOf(TMul#(k,gatherSz)));
+   Alu#(Value) mul   <- mkMultiplier(defaultValue);
+   Alu#(Value) adder <- mkAdder(defaultValue);
+   FIFOF#(Value) adder_buffer <- mkSizedFIFOF(valueOf(TMul#(k,gatherSz)));
    
 `ifdef TAGGED_TOKENS
    FIFO#(Tuple2#(UInt#(32),UInt#(32))) tag_fifo <- mkSizedFIFO(ub_MulLat); 
@@ -134,7 +142,7 @@ module  mkSharedInterleavedDotProdServerConfig#(UInt#(TLog#(TMul#(J,K))) label)(
 
    Reg#(Bit#(16)) firstCnt <- mkReg(0);
    Reg#(Bool)         gReg <- mkReg(False);
-   FIFOF#(Float)     gFifo <- mkSizedFIFOF(kk);
+   FIFOF#(Value)     gFifo <- mkSizedFIFOF(kk);
    Reg#(Bit#(16))  lastCnt <- mkReg(0);
    Reg#(Bit#(16))gatherCnt <- mkReg(0);
    Reg#(Bool) gather_phase <- mkReg(False);

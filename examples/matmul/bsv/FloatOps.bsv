@@ -19,6 +19,8 @@ interface Alu#(type numtype);
 endinterface
 
 typeclass AluClass#(type numtype);
+   function numtype toValue(Float v);
+   function Float fromValue(numtype v);
    module mkAdder#(RoundMode rmode)(Alu#(numtype));
    module mkAddPipe#(PipeOut#(Tuple2#(numtype,numtype)) xypipe)(PipeOut#(numtype));
    module mkSubtracter#(RoundMode rmode)(Alu#(numtype));
@@ -121,6 +123,8 @@ module mkFloatMultiplier#(RoundMode rmode)(Alu#(Float));
 endmodule
 
 instance AluClass#(Float);
+   function Float toValue(Float v); return v; endfunction
+   function Float fromValue(Float v); return v; endfunction
    module mkAdder#(RoundMode rmode)(Alu#(Float));
       let adder <- mkFloatAdder(rmode);
       return adder;
@@ -225,6 +229,10 @@ module mkFixedMultiplier#(RoundMode rmode)(Alu#(Fixed));
 endmodule
 
 instance AluClass#(Fixed);
+   //FIXME
+   function Fixed toValue(Float v); return unpack(pack(toInt32(v))); endfunction
+   //FIXME too
+   function Float fromValue(Fixed v); return fromInt32(unpack(pack(v))); endfunction
    module mkAdder#(RoundMode rmode)(Alu#(Fixed));
       let adder <- mkFixedAdder(rmode);
       return adder;
