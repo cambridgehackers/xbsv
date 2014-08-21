@@ -112,8 +112,8 @@ module  mkSharedInterleavedDotProdServerConfig#(UInt#(TLog#(TMul#(J,K))) label)(
    
    Reg#(UInt#(20)) countReg     <- mkReg(0);
 
-   FloatAlu mul   <- mkFloatMultiplier(defaultValue);
-   FloatAlu adder <- mkFloatAdder(defaultValue);
+   Alu#(Float) mul   <- mkMultiplier(defaultValue);
+   Alu#(Float) adder <- mkAdder(defaultValue);
    FIFOF#(Float) adder_buffer <- mkSizedFIFOF(valueOf(TMul#(k,gatherSz)));
    
 `ifdef TAGGED_TOKENS

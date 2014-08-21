@@ -10,13 +10,21 @@ import Pipe::*;
 import FIFO::*;
 import FpMac::*;
 
-interface FloatAlu;
-   interface Put#(Tuple2#(Float,Float)) request;
-   interface Get#(Tuple2#(Float,Exception)) response;
+interface Alu#(type numtype);
+   interface Put#(Tuple2#(numtype,numtype)) request;
+   interface Get#(Tuple2#(numtype,Exception)) response;
 endinterface
 
+typeclass AluClass#(type numtype);
+   module mkAdder#(RoundMode rmode)(Alu#(numtype));
+   module mkAddPipe#(PipeOut#(Tuple2#(numtype,numtype)) xypipe)(PipeOut#(numtype));
+   module mkSubtracter#(RoundMode rmode)(Alu#(numtype));
+   module mkSubPipe#(PipeOut#(Tuple2#(numtype,numtype)) xypipe)(PipeOut#(numtype));
+   module mkMultiplier#(RoundMode rmode)(Alu#(numtype));
+endtypeclass
+
 (* synthesize *)
-module mkFloatAdder#(RoundMode rmode)(FloatAlu);
+module mkFloatAdder#(RoundMode rmode)(Alu#(Float));
 `ifdef BSIM
    let adder <- mkFPAdder(rmode);
 `else
@@ -53,7 +61,7 @@ module mkFloatAddPipe#(PipeOut#(Tuple2#(Float,Float)) xypipe)(PipeOut#(Float));
 endmodule
 
 (* synthesize *)
-module mkFloatSubtracter#(RoundMode rmode)(FloatAlu);
+module mkFloatSubtracter#(RoundMode rmode)(Alu#(Float));
 `ifdef BSIM
    let adder <- mkFPAdder(rmode);
 `else
@@ -90,7 +98,7 @@ module mkFloatSubPipe#(PipeOut#(Tuple2#(Float,Float)) xypipe)(PipeOut#(Float));
 endmodule
 
 (* synthesize *)
-module mkFloatMultiplier#(RoundMode rmode)(FloatAlu);
+module mkFloatMultiplier#(RoundMode rmode)(Alu#(Float));
 `ifdef BSIM
    let multiplier <- mkFPMultiplier(rmode);
 `else
@@ -108,6 +116,29 @@ module mkFloatMultiplier#(RoundMode rmode)(FloatAlu);
       endmethod
    endinterface
 endmodule
+
+instance AluClass#(Float);
+   module mkAdder#(RoundMode rmode)(Alu#(Float));
+      let adder <- mkFloatAdder(rmode);
+      return adder;
+   endmodule
+   module mkAddPipe#(PipeOut#(Tuple2#(Float,Float)) xypipe)(PipeOut#(Float));
+      let pipe <- mkFloatAddPipe(xypipe);
+      return pipe;
+   endmodule
+   module mkSubtracter#(RoundMode rmode)(Alu#(Float));
+      let sub <- mkFloatSubtracter(rmode);
+      return sub;
+   endmodule
+   module mkMultiplier#(RoundMode rmode)(Alu#(Float));
+      let mul <- mkFloatMultiplier(rmode);
+      return mul;
+   endmodule
+   module mkSubPipe#(PipeOut#(Tuple2#(Float,Float)) xypipe)(PipeOut#(Float));
+      let pipe <- mkFloatSubPipe(xypipe);
+      return pipe;
+   endmodule
+endinstance
 
 (* synthesize *)
 module mkRandomPipe(PipeOut#(Float));
