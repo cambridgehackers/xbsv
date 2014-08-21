@@ -50,9 +50,9 @@ interface SharedDotProdDebug#(numeric type k);
 endinterface
 
 interface SharedDotProdServer#(numeric type k);
-   interface Put#(MmToken)                 aInput;
-   interface Put#(MmToken)                 bInput;
-   interface Vector#(k, PipeOut#(MmToken)) pipes;
+   interface Put#(DotProdToken)                 aInput;
+   interface Put#(DotProdToken)                 bInput;
+   interface Vector#(k, PipeOut#(DotProdToken)) pipes;
    interface SharedDotProdDebug#(k) debug;
 endinterface
 
@@ -65,6 +65,31 @@ typedef struct {
    Bool first;
    Bool last;
 } MmToken deriving (Eq,Bits);
+
+typedef struct {
+`ifdef TAGGED_TOKENS
+   UInt#(32) row;
+   UInt#(32) col;
+`endif
+   Float v;
+   Bool first;
+   Bool last;
+} DotProdToken deriving (Eq,Bits);
+
+function DotProdToken toDotProdToken(MmToken token);
+   return DotProdToken { v: token.v, first: token.first, last: token.last
+`ifdef TAGGED_TOKENS
+      , row: token.row, col: token.col
+`endif
+      };
+endfunction
+function MmToken toMmToken(DotProdToken token);
+   return MmToken { v: token.v, first: token.first, last: token.last
+`ifdef TAGGED_TOKENS
+      , row: token.row, col: token.col
+`endif
+      };
+endfunction
 
 typedef 8 UB_MulLat; // upper bound on MUL latency?
 typedef 8 UB_AddLat; // upper bound on ADD latency?
@@ -101,11 +126,11 @@ module  mkSharedInterleavedDotProdServerConfig#(UInt#(TLog#(TMul#(J,K))) label)(
       cycles <= cycles + 1;
    endrule
 
-   FIFOF#(MmToken)                          afifo   <- mkFIFOF();
-   PipeOut#(MmToken)                        aFunnel = toPipeOut(afifo);
+   FIFOF#(DotProdToken)                          afifo   <- mkFIFOF();
+   PipeOut#(DotProdToken)                        aFunnel = toPipeOut(afifo);
 
-   FIFOF#(MmToken)                          bfifo <- mkFIFOF();
-   PipeOut#(MmToken)                        bFunnel = toPipeOut(bfifo);
+   FIFOF#(DotProdToken)                          bfifo <- mkFIFOF();
+   PipeOut#(DotProdToken)                        bFunnel = toPipeOut(bfifo);
 
    Reg#(Bit#(16)) firstCnt <- mkReg(0);
    Reg#(Bool)         gReg <- mkReg(False);
@@ -117,7 +142,7 @@ module  mkSharedInterleavedDotProdServerConfig#(UInt#(TLog#(TMul#(J,K))) label)(
    Reg#(Bool) lastPassReg <- mkReg((0+1) == fromInteger(valueOf(gatherSz)));
 
    FIFOF#(Tuple2#(Bool,Bool))    flFifo <- mkSizedFIFOF(ub_MulLat);
-   Vector#(k,FIFOF#(MmToken))    dotfifos <- replicateM(mkFIFOF1);
+   Vector#(k,FIFOF#(DotProdToken))    dotfifos <- replicateM(mkFIFOF1);
    Reg#(Bit#(TAdd#(1,TLog#(k)))) rowReg <- mkReg(0);
    Reg#(Bool)                lastRowReg <- mkReg(False);
       
@@ -234,9 +259,9 @@ module  mkSharedInterleavedDotProdServerConfig#(UInt#(TLog#(TMul#(J,K))) label)(
 `ifdef TAGGED_TOKENS
       	 let row = tpl_1(tag_regs[row]);
       	 let col = tpl_2(tag_regs[row]);
-	 dotfifos[row].enq(MmToken{row:row, col:col, v:x});
+	 dotfifos[row].enq(DotProdToken{row:row, col:col, v:x});
 `else
-	 dotfifos[row].enq(MmToken{v:x});
+	 dotfifos[row].enq(DotProdToken{v:x});
 `endif      
 	 if (last_row) begin
 	    gatherCnt <= 0;
@@ -248,10 +273,10 @@ module  mkSharedInterleavedDotProdServerConfig#(UInt#(TLog#(TMul#(J,K))) label)(
       end
    endrule   
 
-   Vector#(k,PipeOut#(MmToken)) dotpipes = map(toPipeOut, dotfifos);
+   Vector#(k,PipeOut#(DotProdToken)) dotpipes = map(toPipeOut, dotfifos);
 
    interface Put aInput;
-      method Action put(MmToken a);
+      method Action put(DotProdToken a);
    	 afifo.enq(a);
 	 countReg <= countReg+1;
       endmethod
@@ -270,9 +295,9 @@ interface MmTileDebug;
 endinterface
 
 interface MmTile;
-   interface Vector#(RowsPerTile, Put#(MmToken)) aInputs;
-   interface Vector#(RowsPerTile, Put#(MmToken)) bInputs;
-   interface Vector#(RowsPerTile, PipeOut#(Vector#(N, MmToken))) fxPipes;
+   interface Vector#(RowsPerTile, Put#(DotProdToken)) aInputs;
+   interface Vector#(RowsPerTile, Put#(DotProdToken)) bInputs;
+   interface Vector#(RowsPerTile, PipeOut#(Vector#(N, DotProdToken))) fxPipes;
    interface MmTileDebug debug;
 endinterface
 
@@ -291,40 +316,40 @@ module  mkMmTile#(Clock slowClock, Reset slowReset, UInt#(TLog#(T)) tile)(MmTile
    let rowsPerTile = valueOf(RowsPerTile);
    let kk = valueOf(K);
 
-   Vector#(RowsPerTile, Reg#(Bit#(32))) aMmTokensPutRegs <- replicateM(mkReg(0));
-   Vector#(RowsPerTile, Reg#(Bit#(32))) bMmTokensPutRegs <- replicateM(mkReg(0));
-   Vector#(RowsPerTile, Reg#(Bit#(32))) aMmTokensReadRegs <- replicateM(mkReg(0));
-   Vector#(RowsPerTile, Reg#(Bit#(32))) bMmTokensReadRegs <- replicateM(mkReg(0));
+   Vector#(RowsPerTile, Reg#(Bit#(32))) aDotProdTokensPutRegs <- replicateM(mkReg(0));
+   Vector#(RowsPerTile, Reg#(Bit#(32))) bDotProdTokensPutRegs <- replicateM(mkReg(0));
+   Vector#(RowsPerTile, Reg#(Bit#(32))) aDotProdTokensReadRegs <- replicateM(mkReg(0));
+   Vector#(RowsPerTile, Reg#(Bit#(32))) bDotProdTokensReadRegs <- replicateM(mkReg(0));
 
-   Vector#(RowsPerTile, FIFOF#(MmToken))   aFifos <- replicateM(mkFIFOF);
-   Vector#(RowsPerTile, PipeOut#(MmToken)) aPipes = zipWith(toCountedPipeOut, aMmTokensReadRegs, map(toPipeOut, aFifos));
-   Vector#(RowsPerTile,  FIFOF#(MmToken))   bFifos <- replicateM(mkFIFOF);
-   Vector#(RowsPerTile,  PipeOut#(MmToken)) bPipes = zipWith(toCountedPipeOut, bMmTokensReadRegs, map(toPipeOut, bFifos));
+   Vector#(RowsPerTile, FIFOF#(DotProdToken))   aFifos <- replicateM(mkFIFOF);
+   Vector#(RowsPerTile, PipeOut#(DotProdToken)) aPipes = zipWith(toCountedPipeOut, aDotProdTokensReadRegs, map(toPipeOut, aFifos));
+   Vector#(RowsPerTile,  FIFOF#(DotProdToken))   bFifos <- replicateM(mkFIFOF);
+   Vector#(RowsPerTile,  PipeOut#(DotProdToken)) bPipes = zipWith(toCountedPipeOut, bDotProdTokensReadRegs, map(toPipeOut, bFifos));
 
-   function Vector#(k,PipeOut#(MmToken)) getDotProdServerPipes(SharedDotProdServer#(k) s); return s.pipes; endfunction
+   function Vector#(k,PipeOut#(DotProdToken)) getDotProdServerPipes(SharedDotProdServer#(k) s); return s.pipes; endfunction
    Vector#(RowsPerTile, SharedDotProdServer#(K)) fxdotprods <- mapM(mkSharedInterleavedDotProdServer, map(fromInteger,genVector));
-   Vector#(RowsPerTile, Vector#(K, PipeOut#(MmToken))) fxpipes = map(getDotProdServerPipes, fxdotprods);
+   Vector#(RowsPerTile, Vector#(K, PipeOut#(DotProdToken))) fxpipes = map(getDotProdServerPipes, fxdotprods);
 //`define USE_MIMO_DFIFOS // this version is faster
    let fastClock <- exposeCurrentClock();
    let fastReset <- exposeCurrentReset();
 `ifndef USE_MIMO_DFIFOS
-   Vector#(RowsPerTile, PipeOut#(Vector#(K, MmToken))) fxPipesK <- mapM(mkJoinVector(id), fxpipes);
-   Vector#(RowsPerTile, PipeOut#(MmToken)) fxPipes1MmToken <- mapM(mkFunnel1, fxPipesK);
-   Vector#(RowsPerTile, PipeOut#(Vector#(1, MmToken))) fxPipes1 = map(mapPipe(replicate), fxPipes1MmToken);
+   Vector#(RowsPerTile, PipeOut#(Vector#(K, DotProdToken))) fxPipesK <- mapM(mkJoinVector(id), fxpipes);
+   Vector#(RowsPerTile, PipeOut#(DotProdToken)) fxPipes1DotProdToken <- mapM(mkFunnel1, fxPipesK);
+   Vector#(RowsPerTile, PipeOut#(Vector#(1, DotProdToken))) fxPipes1 = map(mapPipe(replicate), fxPipes1DotProdToken);
 `else
    MIMOConfiguration mimoCfg = defaultValue;
-   Vector#(RowsPerTile, MIMO#(K,1,TAdd#(K,1),MmToken)) dfifos <- replicateM(mkMIMO(mimoCfg));
-   Vector#(RowsPerTile, PipeOut#(Vector#(1, MmToken))) fxPipes1 = map(toPipeOut, dfifos);
+   Vector#(RowsPerTile, MIMO#(K,1,TAdd#(K,1),DotProdToken)) dfifos <- replicateM(mkMIMO(mimoCfg));
+   Vector#(RowsPerTile, PipeOut#(Vector#(1, DotProdToken))) fxPipes1 = map(toPipeOut, dfifos);
 `endif
-   Vector#(RowsPerTile, Gearbox#(1, N, MmToken)) gearboxes <- replicateM(mk1toNGearbox(fastClock, fastReset, slowClock, slowReset));
-   Vector#(RowsPerTile, PipeIn#(Vector#(1,MmToken))) toGearboxes = map(toPipeIn, gearboxes);
-   Vector#(RowsPerTile, PipeOut#(Vector#(N, MmToken))) fromGearboxes = map(toPipeOut, gearboxes);
+   Vector#(RowsPerTile, Gearbox#(1, N, DotProdToken)) gearboxes <- replicateM(mk1toNGearbox(fastClock, fastReset, slowClock, slowReset));
+   Vector#(RowsPerTile, PipeIn#(Vector#(1,DotProdToken))) toGearboxes = map(toPipeIn, gearboxes);
+   Vector#(RowsPerTile, PipeOut#(Vector#(N, DotProdToken))) fromGearboxes = map(toPipeOut, gearboxes);
    mapM(uncurry(mkConnection), zip(fxPipes1, toGearboxes));
    // introduce a buffer to help vivado meet timing on vc707
-   Vector#(RowsPerTile, FIFOF#(Vector#(N,MmToken)))    tokenfifos <- replicateM(mkFIFOF(clocked_by slowClock, reset_by slowReset));
-   Vector#(RowsPerTile, PipeIn#(Vector#(N,MmToken))) toMmTokenFifos = map(toPipeIn, tokenfifos);
-   mapM(uncurry(mkConnection), zip(fromGearboxes, toMmTokenFifos), clocked_by slowClock, reset_by slowReset);
-   Vector#(RowsPerTile, PipeOut#(Vector#(N, MmToken))) fxPipesN = map(toPipeOut, tokenfifos);
+   Vector#(RowsPerTile, FIFOF#(Vector#(N,DotProdToken)))    tokenfifos <- replicateM(mkFIFOF(clocked_by slowClock, reset_by slowReset));
+   Vector#(RowsPerTile, PipeIn#(Vector#(N,DotProdToken))) toDotProdTokenFifos = map(toPipeIn, tokenfifos);
+   mapM(uncurry(mkConnection), zip(fromGearboxes, toDotProdTokenFifos), clocked_by slowClock, reset_by slowReset);
+   Vector#(RowsPerTile, PipeOut#(Vector#(N, DotProdToken))) fxPipesN = map(toPipeOut, tokenfifos);
 
    FirstLastPipe#(UInt#(MMSize)) firstLastPipe          <- mkFirstLastPipe();
    Vector#(2, PipeOut#(Tuple2#(Bool,Bool))) firstLastPipes <- mkForkVector(firstLastPipe.pipe);
@@ -347,7 +372,7 @@ module  mkMmTile#(Clock slowClock, Reset slowReset, UInt#(TLog#(T)) tile)(MmTile
 `ifdef USE_MIMO_DFIFOS
    for (Integer j = 0; j < rowsPerTile; j = j + 1) begin
       rule dotProdValue;
-	 Vector#(K,MmToken) vs;
+	 Vector#(K,DotProdToken) vs;
 	 for (Integer k = 0; k < kk; k = k + 1) begin
 	    let v <- toGet(fxpipes[j][k]).get();
 	    vs[k] = v;
@@ -361,8 +386,8 @@ module  mkMmTile#(Clock slowClock, Reset slowReset, UInt#(TLog#(T)) tile)(MmTile
    function PipeOut#(Bit#(32)) dotProdMacCount(SharedDotProdServer#(K) dotprodserver); return dotprodserver.debug.macCount; endfunction
    PipeOut#(Bit#(32)) macCountPipe <- mkReducePipes(uncurry(add), map(dotProdMacCount, fxdotprods));
 
-   interface Vector aInputs = zipWith(toCountedPut, aMmTokensPutRegs, map(toPut, aFifos));
-   interface Vector bInputs = zipWith(toCountedPut, bMmTokensPutRegs, map(toPut, bFifos));
+   interface Vector aInputs = zipWith(toCountedPut, aDotProdTokensPutRegs, map(toPut, aFifos));
+   interface Vector bInputs = zipWith(toCountedPut, bDotProdTokensPutRegs, map(toPut, bFifos));
    interface Vector fxPipes = fxPipesN;
    interface MmTileDebug debug;
       interface PipeOut macCount = macCountPipe;

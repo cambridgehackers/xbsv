@@ -326,20 +326,23 @@ module  mkDmaMatrixMultiply#(ObjectReadServer#(TMul#(N,32)) sA,
    RowColSource#(TMul#(N,32), Vector#(N,MmToken)) sourceB <- mkRowSource(sB, numRowsBReg, 1);
    RowColSink#(TMul#(N,32),   Vector#(N,MmToken))    sink <- mkRowColSink(ss, 0);
 
-   PipeOut#(MmToken) aPipe <- mkFunnelGB1(defaultClock, defaultReset, doubleClock, doubleReset, sourceA.pipe);
-   UnFunnelPipe#(1,J,MmToken,1) aPipes <- mkUnFunnelPipesPipelinedRR(clocked_by doubleClock, reset_by doubleReset, cons(aPipe,nil), 1);
-   PipeOut#(MmToken) bFunnel <- mkFunnelGB1(defaultClock, defaultReset, doubleClock, doubleReset, sourceB.pipe);
-   Vector#(J, PipeOut#(MmToken)) bPipes <- mkForkVector(bFunnel, clocked_by doubleClock, reset_by doubleReset);
+   PipeOut#(Vector#(N,DotProdToken)) dotProdSourceA = mapPipe(map(toDotProdToken), sourceA.pipe);
+   PipeOut#(Vector#(N,DotProdToken)) dotProdSourceB = mapPipe(map(toDotProdToken), sourceB.pipe);
+
+   PipeOut#(DotProdToken) aPipe <- mkFunnelGB1(defaultClock, defaultReset, doubleClock, doubleReset, dotProdSourceA);
+   UnFunnelPipe#(1,J,DotProdToken,1) aPipes <- mkUnFunnelPipesPipelinedRR(clocked_by doubleClock, reset_by doubleReset, cons(aPipe,nil), 1);
+   PipeOut#(DotProdToken) bFunnel <- mkFunnelGB1(defaultClock, defaultReset, doubleClock, doubleReset, dotProdSourceB);
+   Vector#(J, PipeOut#(DotProdToken)) bPipes <- mkForkVector(bFunnel, clocked_by doubleClock, reset_by doubleReset);
    
    rule countCycles;
       cycles <= cycles+1;
    endrule
 
    UInt#(TAdd#(TLog#(K),1)) repetitions = fromInteger(valueOf(K));
-   Vector#(J, PipeOut#(MmToken)) aRepeaters <- mapM(mkRepeat(repetitions), aPipes, clocked_by doubleClock, reset_by doubleReset);
+   Vector#(J, PipeOut#(DotProdToken)) aRepeaters <- mapM(mkRepeat(repetitions), aPipes, clocked_by doubleClock, reset_by doubleReset);
 
    Vector#(T, MmTile) mmTiles <- mapM(mkMmTile(defaultClock, defaultReset), map(fromInteger,genVector), clocked_by doubleClock, reset_by doubleReset);
-   Vector#(J, PipeOut#(Vector#(N,MmToken))) fxpipes;
+   Vector#(J, PipeOut#(Vector#(N,DotProdToken))) fxpipes;
    for (Integer t = 0; t < valueOf(T); t = t+1) begin
       for (Integer i = 0; i < valueof(RowsPerTile); i = i+1) begin
    	 let j = t*valueOf(RowsPerTile) + i;
@@ -348,8 +351,8 @@ module  mkDmaMatrixMultiply#(ObjectReadServer#(TMul#(N,32)) sA,
    	 fxpipes[j] = mmTiles[t].fxPipes[i];
       end
    end
-   FunnelPipe#(1,J,Vector#(N,MmToken),2) sinks <- mkFunnelPipesPipelinedRR(fxpipes,kk/valueOf(N));
-   mkConnection(sinks[0],sink.pipe);
+   FunnelPipe#(1,J,Vector#(N,DotProdToken),2) sinks <- mkFunnelPipesPipelinedRR(fxpipes,kk/valueOf(N));
+   mkConnection(mapPipe(map(toMmToken), sinks[0]),sink.pipe);
 
    XYZRangePipeIfc#(UInt#(addrwidth)) offsetpipeC <- mkXYZRangePipeOut(RangeC);
    XYZRangePipeIfc#(UInt#(addrwidth)) offsetpipeA <- mkXYZRangePipeOut(RangeA);
