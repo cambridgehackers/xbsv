@@ -22,3 +22,5 @@ Connectal has a mailing list:
    https://groups.google.com/forum/#!forum/connectal
 
 The Connectal repo has moved to https://github.com/cambridgehackers/connectal
+
+The old xbsv code is available on the "archive" branch of this repository.
