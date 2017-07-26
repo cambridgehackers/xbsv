@@ -1,4 +1,0 @@
-#
-# rule for connectal kernel test module
-#
-KERNEL=="connectaltest", MODE="0666"
